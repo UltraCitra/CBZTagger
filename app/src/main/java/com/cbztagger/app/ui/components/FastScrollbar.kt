@@ -21,6 +21,7 @@ import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -100,8 +101,10 @@ fun LazyListFastScrollbar(
     }
 
     val effectiveTrackPx = (trackHeightPx - verticalPaddingPx * 2f).coerceAtLeast(1f)
+    val maxThumbPx = (effectiveTrackPx * 0.65f).coerceAtLeast(1f)
+    val safeMinThumbPx = minThumbPx.coerceAtMost(maxThumbPx)
     val thumbHeightPx = (effectiveTrackPx * metrics.viewportRatio)
-        .coerceIn(minThumbPx.coerceAtMost(effectiveTrackPx), effectiveTrackPx * 0.65f)
+        .coerceIn(safeMinThumbPx, maxThumbPx)
     val usableTrackPx = (effectiveTrackPx - thumbHeightPx).coerceAtLeast(1f)
     val activeFraction = if (isDragging) dragFraction else metrics.scrollFraction
     val thumbOffsetYPx = verticalPaddingPx + activeFraction * usableTrackPx
@@ -138,6 +141,8 @@ fun LazyListFastScrollbar(
         }
     }
 
+    val latestScrollToPointerY by rememberUpdatedState(::scrollToPointerY)
+
     Box(
         modifier = modifier
             .width(24.dp)
@@ -148,7 +153,7 @@ fun LazyListFastScrollbar(
                     val down = awaitFirstDown(requireUnconsumed = false)
                     down.consume()
                     isDragging = true
-                    scrollToPointerY(down.position.y)
+                    latestScrollToPointerY(down.position.y)
                     try {
                         while (true) {
                             val event = awaitPointerEvent()
@@ -160,7 +165,7 @@ fun LazyListFastScrollbar(
                                 break
                             }
                             change.consume()
-                            scrollToPointerY(change.position.y)
+                            latestScrollToPointerY(change.position.y)
                         }
                     } finally {
                         isDragging = false
@@ -180,27 +185,29 @@ fun LazyListFastScrollbar(
                 .background(MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.45f)),
         )
 
-        // Draggable thumb
-        val thumbHeightDp = with(density) { thumbHeightPx.toDp() }
-        val thumbWidthDp = if (isDragging) 8.dp else 6.dp
-        val thumbColor = if (isDragging) {
-            MaterialTheme.colorScheme.primary
-        } else {
-            MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.55f)
-        }
-        Box(
-            modifier = Modifier
-                .fillMaxWidth()
-                .offset { IntOffset(0, thumbOffsetYPx.roundToInt()) },
-            contentAlignment = Alignment.TopCenter,
-        ) {
+        // Draggable thumb (render after track measurement)
+        if (trackHeightPx > 0) {
+            val thumbHeightDp = with(density) { thumbHeightPx.toDp() }
+            val thumbWidthDp = if (isDragging) 8.dp else 6.dp
+            val thumbColor = if (isDragging) {
+                MaterialTheme.colorScheme.primary
+            } else {
+                MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.55f)
+            }
             Box(
                 modifier = Modifier
-                    .width(thumbWidthDp)
-                    .height(thumbHeightDp)
-                    .clip(RoundedCornerShape(4.dp))
-                    .background(thumbColor),
-            )
+                    .fillMaxWidth()
+                    .offset { IntOffset(0, thumbOffsetYPx.roundToInt()) },
+                contentAlignment = Alignment.TopCenter,
+            ) {
+                Box(
+                    modifier = Modifier
+                        .width(thumbWidthDp)
+                        .height(thumbHeightDp)
+                        .clip(RoundedCornerShape(4.dp))
+                        .background(thumbColor),
+                )
+            }
         }
     }
 }
