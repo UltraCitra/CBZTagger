@@ -1,5 +1,10 @@
 package com.cbztagger.app.ui.components
 
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.expandVertically
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.shrinkVertically
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -104,96 +109,73 @@ fun AuthorCreditInput(
     }
     var separateAuthors by remember(resetKey) { mutableStateOf(initialSeparate) }
 
-    Column(
-        modifier = modifier.fillMaxWidth(),
-        verticalArrangement = Arrangement.spacedBy(8.dp),
-    ) {
-        if (!separateAuthors) {
-            val combinedValue = penciller.ifBlank { writer }
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(6.dp),
-            ) {
-                OutlinedTextField(
-                    value = combinedValue,
-                    onValueChange = { v -> onChange(v, v) },
-                    label = { Text("작가 (그림·글)") },
-                    singleLine = true,
-                    modifier = Modifier.weight(1f),
-                )
-                Column(
-                    horizontalAlignment = Alignment.CenterHorizontally,
-                    modifier = Modifier
-                        .clickable {
-                            separateAuthors = true
-                            if (writer.isBlank() && penciller.isNotBlank()) {
-                                onChange(penciller, penciller)
-                            } else if (penciller.isBlank() && writer.isNotBlank()) {
-                                onChange(writer, writer)
-                            }
-                        }
-                        .padding(horizontal = 2.dp),
-                ) {
-                    Checkbox(
-                        checked = false,
-                        onCheckedChange = { checked ->
-                            if (checked) {
-                                separateAuthors = true
-                                if (writer.isBlank() && penciller.isNotBlank()) {
-                                    onChange(penciller, penciller)
-                                } else if (penciller.isBlank() && writer.isNotBlank()) {
-                                    onChange(writer, writer)
-                                }
-                            }
-                        },
-                    )
-                    Text(
-                        text = "그림·글 다름",
-                        style = MaterialTheme.typography.labelSmall,
-                        maxLines = 1,
-                    )
-                }
+    fun setSeparate(checked: Boolean) {
+        if (checked == separateAuthors) return
+        separateAuthors = checked
+        if (checked) {
+            if (writer.isBlank() && penciller.isNotBlank()) {
+                onChange(penciller, penciller)
+            } else if (penciller.isBlank() && writer.isNotBlank()) {
+                onChange(writer, writer)
             }
         } else {
-            Row(
+            val unified = penciller.ifBlank { writer }
+            onChange(unified, unified)
+        }
+    }
+
+    Column(modifier = modifier.fillMaxWidth()) {
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(6.dp),
+        ) {
+            OutlinedTextField(
+                value = if (separateAuthors) penciller else penciller.ifBlank { writer },
+                onValueChange = { v ->
+                    if (separateAuthors) {
+                        onChange(writer, v)
+                    } else {
+                        onChange(v, v)
+                    }
+                },
+                label = {
+                    Text(if (separateAuthors) "그림작가 (Penciller)" else "작가 (그림·글)")
+                },
+                singleLine = true,
+                modifier = Modifier.weight(1f),
+            )
+            Column(
+                horizontalAlignment = Alignment.CenterHorizontally,
                 modifier = Modifier
-                    .fillMaxWidth()
-                    .clickable {
-                        separateAuthors = false
-                        val unified = penciller.ifBlank { writer }
-                        onChange(unified, unified)
-                    },
-                verticalAlignment = Alignment.CenterVertically,
+                    .clickable { setSeparate(!separateAuthors) }
+                    .padding(horizontal = 2.dp),
             ) {
                 Checkbox(
-                    checked = true,
-                    onCheckedChange = { checked ->
-                        if (!checked) {
-                            separateAuthors = false
-                            val unified = penciller.ifBlank { writer }
-                            onChange(unified, unified)
-                        }
-                    },
+                    checked = separateAuthors,
+                    onCheckedChange = { checked -> setSeparate(checked) },
                 )
                 Text(
-                    text = "그림작가와 글작가가 다릅니다",
-                    style = MaterialTheme.typography.bodySmall,
+                    text = "그림·글 다름",
+                    style = MaterialTheme.typography.labelSmall,
+                    maxLines = 1,
                 )
             }
-            OutlinedTextField(
-                value = penciller,
-                onValueChange = { v -> onChange(writer, v) },
-                label = { Text("그림작가 (Penciller)") },
-                singleLine = true,
-                modifier = Modifier.fillMaxWidth(),
-            )
+        }
+
+        AnimatedVisibility(
+            visible = separateAuthors,
+            enter = expandVertically(expandFrom = Alignment.Top) + fadeIn(),
+            exit = shrinkVertically(shrinkTowards = Alignment.Top) + fadeOut(),
+        ) {
             OutlinedTextField(
                 value = writer,
                 onValueChange = { v -> onChange(v, penciller) },
                 label = { Text("글작가 (Writer)") },
                 singleLine = true,
-                modifier = Modifier.fillMaxWidth(),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(top = 8.dp),
             )
         }
     }
