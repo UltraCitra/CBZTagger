@@ -90,14 +90,14 @@ data class ComicInfo(
     /**
      * Formats author credits prioritizing Penciller (그림작가) over Writer (글작가).
      * - Same author for both: shown once.
-     * - Different authors: "그림작가 / 글작가".
+     * - Different authors: "그림작가 | 글작가".
      */
     fun formatAuthorsDisplay(): String {
         val p = penciller.trim()
         val w = writer.trim()
         return when {
             p.isNotBlank() && w.isNotBlank() -> {
-                if (p.equals(w, ignoreCase = true)) p else "$p / $w"
+                if (p.equals(w, ignoreCase = true)) p else "$p | $w"
             }
             p.isNotBlank() -> p
             w.isNotBlank() -> w
@@ -119,6 +119,21 @@ data class ComicInfo(
                 append(title.trim())
                 if (year != null) append(" ($year)")
             }
+        }
+    }
+
+    /**
+     * Single inline library metadata line with unified style:
+     * "{series} #{issue} | {penciller}" (or "{title} | {penciller} | {writer}" when different).
+     */
+    fun formatLibraryMetaLine(): String {
+        val primary = formatLibraryPrimaryMeta()
+        val authors = formatAuthorsDisplay()
+        return when {
+            primary.isNotBlank() && authors.isNotBlank() -> "$primary | $authors"
+            primary.isNotBlank() -> primary
+            authors.isNotBlank() -> authors
+            else -> "메타데이터 없음"
         }
     }
 

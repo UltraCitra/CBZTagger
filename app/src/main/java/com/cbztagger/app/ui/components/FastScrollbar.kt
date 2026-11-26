@@ -14,15 +14,16 @@ import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.setValue
+import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -31,7 +32,7 @@ import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
-import kotlinx.coroutines.launch
+import kotlinx.coroutines.flow.collectLatest
 import kotlin.math.roundToInt
 
 data class FastScrollIndicator(
@@ -39,6 +40,42 @@ data class FastScrollIndicator(
     val totalPages: Int,
     val centerYPx: Float,
 )
+
+internal object FastScrollbarMath {
+    fun computeThumbHeight(
+        trackHeightPx: Float,
+        verticalPaddingPx: Float,
+        minThumbPx: Float,
+        viewportRatio: Float,
+    ): Float {
+        val effectiveTrack = (trackHeightPx - verticalPaddingPx * 2f).coerceAtLeast(1f)
+        val maxThumb = (effectiveTrack * 0.65f).coerceAtLeast(1f)
+        val safeMin = minThumbPx.coerceAtMost(maxThumb)
+        return (effectiveTrack * viewportRatio.coerceIn(0.08f, 1f)).coerceIn(safeMin, maxThumb)
+    }
+
+    fun pointerYToFraction(
+        pointerY: Float,
+        trackHeightPx: Float,
+        verticalPaddingPx: Float,
+        thumbHeightPx: Float,
+    ): Float {
+        val effectiveTrack = (trackHeightPx - verticalPaddingPx * 2f).coerceAtLeast(1f)
+        val usableTrack = (effectiveTrack - thumbHeightPx).coerceAtLeast(1f)
+        return ((pointerY - verticalPaddingPx - thumbHeightPx / 2f) / usableTrack).coerceIn(0f, 1f)
+    }
+
+    fun fractionToThumbOffsetY(
+        fraction: Float,
+        trackHeightPx: Float,
+        verticalPaddingPx: Float,
+        thumbHeightPx: Float,
+    ): Float {
+        val effectiveTrack = (trackHeightPx - verticalPaddingPx * 2f).coerceAtLeast(1f)
+        val usableTrack = (effectiveTrack - thumbHeightPx).coerceAtLeast(1f)
+        return verticalPaddingPx + fraction.coerceIn(0f, 1f) * usableTrack
+    }
+}
 
 /**
  * Browser-style vertical fast-scroll slider rail on the right edge of a [LazyListState].
@@ -53,6 +90,7 @@ fun LazyListFastScrollbar(
 ) {
     var isDragging by remember { mutableStateOf(false) }
     var dragFraction by remember { mutableFloatStateOf(0f) }
+    var scrollRequestSeq by remember { mutableIntStateOf(0) }
     var trackHeightPx by remember { mutableIntStateOf(0) }
 
     val canScroll by remember(listState) {
@@ -62,10 +100,10 @@ fun LazyListFastScrollbar(
         return
     }
 
-    val scope = rememberCoroutineScope()
     val density = LocalDensity.current
     val verticalPaddingPx = with(density) { 8.dp.toPx() }
     val minThumbPx = with(density) { 44.dp.toPx() }
+    val onIndicatorChangeState = rememberUpdatedState(onIndicatorChange)
 
     val metrics by remember(listState, totalItems) {
         derivedStateOf {
@@ -79,81 +117,134 @@ fun LazyListFastScrollbar(
                 val spacing = layoutInfo.mainAxisItemSpacing.toFloat()
                 (sum / visibleItems.size + spacing).coerceAtLeast(1f)
             } else {
-                1f
+                0f
             }
-            val estimatedTotalHeight = (totalItems * avgItemHeight).coerceAtLeast(viewportHeight)
+            val estimatedTotalHeight = if (avgItemHeight > 0f) {
+                (totalItems * avgItemHeight).coerceAtLeast(viewportHeight)
+            } else {
+                viewportHeight
+            }
             val maxScrollPx = (estimatedTotalHeight - viewportHeight).coerceAtLeast(1f)
             val currentScrollPx = listState.firstVisibleItemIndex * avgItemHeight +
                 listState.firstVisibleItemScrollOffset
             val scrollFraction = when {
                 !listState.canScrollForward -> 1f
                 listState.firstVisibleItemIndex == 0 && listState.firstVisibleItemScrollOffset == 0 -> 0f
-                else -> (currentScrollPx / maxScrollPx).coerceIn(0f, 1f)
+                avgItemHeight > 0f -> (currentScrollPx / maxScrollPx).coerceIn(0f, 1f)
+                else -> (listState.firstVisibleItemIndex.toFloat() / (totalItems - 1).coerceAtLeast(1))
+                    .coerceIn(0f, 1f)
             }
             val viewportRatio = (viewportHeight / estimatedTotalHeight).coerceIn(0.08f, 1f)
             ScrollMetrics(
-                avgItemHeight = avgItemHeight,
-                maxScrollPx = maxScrollPx,
                 scrollFraction = scrollFraction,
                 viewportRatio = viewportRatio,
             )
         }
     }
+    val viewportRatioState = rememberUpdatedState(metrics.viewportRatio)
 
-    val effectiveTrackPx = (trackHeightPx - verticalPaddingPx * 2f).coerceAtLeast(1f)
-    val maxThumbPx = (effectiveTrackPx * 0.65f).coerceAtLeast(1f)
-    val safeMinThumbPx = minThumbPx.coerceAtMost(maxThumbPx)
-    val thumbHeightPx = (effectiveTrackPx * metrics.viewportRatio)
-        .coerceIn(safeMinThumbPx, maxThumbPx)
-    val usableTrackPx = (effectiveTrackPx - thumbHeightPx).coerceAtLeast(1f)
-    val activeFraction = if (isDragging) dragFraction else metrics.scrollFraction
-    val thumbOffsetYPx = verticalPaddingPx + activeFraction * usableTrackPx
-
-    fun scrollToPointerY(pointerY: Float) {
-        if (trackHeightPx <= 0 || totalItems <= 1) return
-        val newFraction = ((pointerY - verticalPaddingPx - thumbHeightPx / 2f) / usableTrackPx)
-            .coerceIn(0f, 1f)
-        dragFraction = newFraction
-        val pageNumber = (newFraction * (totalItems - 1)).roundToInt().coerceIn(0, totalItems - 1) + 1
-        val centerY = verticalPaddingPx + newFraction * usableTrackPx + thumbHeightPx / 2f
-        onIndicatorChange(
-            FastScrollIndicator(
-                pageNumber = pageNumber,
-                totalPages = totalItems,
-                centerYPx = centerY,
-            ),
-        )
-        scope.launch {
+    // Sequentially drive LazyListState from drag/tap requests so coroutines never fight MutatorMutex.
+    LaunchedEffect(listState, totalItems) {
+        if (totalItems <= 1) return@LaunchedEffect
+        snapshotFlow { scrollRequestSeq to dragFraction }.collectLatest { (seq, fraction) ->
+            if (seq <= 0) return@collectLatest
             when {
-                newFraction <= 0.001f -> listState.scrollToItem(0, 0)
-                newFraction >= 0.999f -> listState.scrollToItem(totalItems - 1, 0)
+                fraction <= 0.001f -> listState.scrollToItem(0, 0)
+                fraction >= 0.999f -> listState.scrollToItem(totalItems - 1, 0)
                 else -> {
-                    val targetScrollPx = newFraction * metrics.maxScrollPx
-                    val targetIndex = (targetScrollPx / metrics.avgItemHeight)
-                        .toInt()
-                        .coerceIn(0, totalItems - 1)
-                    val targetOffset = (targetScrollPx - targetIndex * metrics.avgItemHeight)
-                        .roundToInt()
-                        .coerceAtLeast(0)
-                    listState.scrollToItem(targetIndex, targetOffset)
+                    val layoutInfo = listState.layoutInfo
+                    val visible = layoutInfo.visibleItemsInfo
+                    val viewportH = (layoutInfo.viewportEndOffset - layoutInfo.viewportStartOffset)
+                        .coerceAtLeast(1)
+                        .toFloat()
+                    val avgH = if (visible.isNotEmpty()) {
+                        (visible.sumOf { it.size }.toFloat() / visible.size + layoutInfo.mainAxisItemSpacing)
+                            .coerceAtLeast(1f)
+                    } else {
+                        0f
+                    }
+                    if (avgH > 0f) {
+                        val maxScroll = (totalItems * avgH - viewportH).coerceAtLeast(0f)
+                        val targetScroll = fraction * maxScroll
+                        val targetIndex = (targetScroll / avgH).toInt().coerceIn(0, totalItems - 1)
+                        val targetOffset = (targetScroll - targetIndex * avgH)
+                            .roundToInt()
+                            .coerceAtLeast(0)
+                        listState.scrollToItem(targetIndex, targetOffset)
+                    } else {
+                        val targetIndex = (fraction * (totalItems - 1))
+                            .roundToInt()
+                            .coerceIn(0, totalItems - 1)
+                        listState.scrollToItem(targetIndex, 0)
+                    }
                 }
             }
         }
     }
 
-    val latestScrollToPointerY by rememberUpdatedState(::scrollToPointerY)
+    val thumbHeightPx = FastScrollbarMath.computeThumbHeight(
+        trackHeightPx = trackHeightPx.toFloat(),
+        verticalPaddingPx = verticalPaddingPx,
+        minThumbPx = minThumbPx,
+        viewportRatio = metrics.viewportRatio,
+    )
+    val activeFraction = if (isDragging) dragFraction else metrics.scrollFraction
+    val thumbOffsetYPx = FastScrollbarMath.fractionToThumbOffsetY(
+        fraction = activeFraction,
+        trackHeightPx = trackHeightPx.toFloat(),
+        verticalPaddingPx = verticalPaddingPx,
+        thumbHeightPx = thumbHeightPx,
+    )
 
     Box(
         modifier = modifier
-            .width(24.dp)
+            .width(28.dp)
             .fillMaxHeight()
             .onSizeChanged { trackHeightPx = it.height }
             .pointerInput(totalItems) {
+                val padPx = 8.dp.toPx()
+                val minThumb = 44.dp.toPx()
+
+                fun applyPointerY(pointerY: Float) {
+                    val heightPx = size.height.toFloat()
+                    if (heightPx <= 0f || totalItems <= 1) return
+                    val currentThumbHeight = FastScrollbarMath.computeThumbHeight(
+                        trackHeightPx = heightPx,
+                        verticalPaddingPx = padPx,
+                        minThumbPx = minThumb,
+                        viewportRatio = viewportRatioState.value,
+                    )
+                    val newFraction = FastScrollbarMath.pointerYToFraction(
+                        pointerY = pointerY,
+                        trackHeightPx = heightPx,
+                        verticalPaddingPx = padPx,
+                        thumbHeightPx = currentThumbHeight,
+                    )
+                    dragFraction = newFraction
+                    scrollRequestSeq += 1
+                    val pageNumber = (newFraction * (totalItems - 1))
+                        .roundToInt()
+                        .coerceIn(0, totalItems - 1) + 1
+                    val centerY = FastScrollbarMath.fractionToThumbOffsetY(
+                        fraction = newFraction,
+                        trackHeightPx = heightPx,
+                        verticalPaddingPx = padPx,
+                        thumbHeightPx = currentThumbHeight,
+                    ) + currentThumbHeight / 2f
+                    onIndicatorChangeState.value(
+                        FastScrollIndicator(
+                            pageNumber = pageNumber,
+                            totalPages = totalItems,
+                            centerYPx = centerY,
+                        ),
+                    )
+                }
+
                 awaitEachGesture {
                     val down = awaitFirstDown(requireUnconsumed = false)
                     down.consume()
                     isDragging = true
-                    latestScrollToPointerY(down.position.y)
+                    applyPointerY(down.position.y)
                     try {
                         while (true) {
                             val event = awaitPointerEvent()
@@ -165,11 +256,11 @@ fun LazyListFastScrollbar(
                                 break
                             }
                             change.consume()
-                            latestScrollToPointerY(change.position.y)
+                            applyPointerY(change.position.y)
                         }
                     } finally {
                         isDragging = false
-                        onIndicatorChange(null)
+                        onIndicatorChangeState.value(null)
                     }
                 }
             },
@@ -213,8 +304,6 @@ fun LazyListFastScrollbar(
 }
 
 private data class ScrollMetrics(
-    val avgItemHeight: Float,
-    val maxScrollPx: Float,
     val scrollFraction: Float,
     val viewportRatio: Float,
 )
