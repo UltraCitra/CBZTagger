@@ -125,3 +125,9 @@ app/src/main/java/com/cbztagger/app/
 - **AndroidX Lifecycle / ViewModel / Activity Compose / DocumentFile**
 - **Kotlin Coroutines**
 - **JUnit 4** (코어 로직 단위 테스트)
+
+---
+
+## 라이선스
+
+이 프로젝트는 **MIT License** 하에 배포됩니다. 자세한 내용은 [LICENSE](./LICENSE)를 참고하세요.
