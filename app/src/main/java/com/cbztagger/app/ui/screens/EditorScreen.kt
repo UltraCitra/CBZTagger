@@ -21,11 +21,13 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.navigationBarsPadding
+import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
@@ -81,8 +83,11 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.layout.onSizeChanged
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
@@ -96,9 +101,12 @@ import com.cbztagger.app.data.AppSettings
 import com.cbztagger.app.ui.EditorState
 import com.cbztagger.app.ui.MainViewModel
 import com.cbztagger.app.ui.components.AuthorCreditInput
+import com.cbztagger.app.ui.components.FastScrollIndicator
+import com.cbztagger.app.ui.components.LazyListFastScrollbar
 import com.cbztagger.app.ui.components.MangaSelectorRow
 import com.cbztagger.app.ui.dialogs.BatchBookmarkDialog
 import com.cbztagger.app.ui.dialogs.PageRangeSelectDialog
+import kotlin.math.roundToInt
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -747,11 +755,25 @@ private fun PagesTab(
         }
         HorizontalDivider()
 
-        LazyColumn(
-            modifier = Modifier.weight(1f),
-            verticalArrangement = Arrangement.spacedBy(4.dp),
+        val listState = rememberLazyListState()
+        var fastScrollIndicator by remember { mutableStateOf<FastScrollIndicator?>(null) }
+        var listContainerHeightPx by remember { mutableIntStateOf(0) }
+
+        Box(
+            modifier = Modifier
+                .weight(1f)
+                .fillMaxWidth()
+                .onSizeChanged { listContainerHeightPx = it.height },
         ) {
-            itemsIndexed(pageNames) { idx, entryName ->
+            Row(modifier = Modifier.fillMaxSize()) {
+                LazyColumn(
+                    state = listState,
+                    modifier = Modifier
+                        .weight(1f)
+                        .fillMaxHeight(),
+                    verticalArrangement = Arrangement.spacedBy(4.dp),
+                ) {
+                    itemsIndexed(pageNames) { idx, entryName ->
                 val pageInfo = normalizedPages[idx]
                 var typeExpanded by remember { mutableStateOf(false) }
                 val hasBookmark = pageInfo.bookmark.isNotBlank()
@@ -918,6 +940,41 @@ private fun PagesTab(
                     }
                 }
                 HorizontalDivider()
+            }
+                }
+                LazyListFastScrollbar(
+                    listState = listState,
+                    totalItems = pageCount,
+                    onIndicatorChange = { fastScrollIndicator = it },
+                    modifier = Modifier.fillMaxHeight(),
+                )
+            }
+
+            val indicator = fastScrollIndicator
+            if (indicator != null) {
+                val density = LocalDensity.current
+                val pillHalfHeightPx = with(density) { 16.dp.toPx() }
+                val topMarginPx = with(density) { 8.dp.toPx() }
+                val maxY = (listContainerHeightPx - pillHalfHeightPx * 2f - topMarginPx)
+                    .coerceAtLeast(topMarginPx)
+                val offsetY = (indicator.centerYPx - pillHalfHeightPx).coerceIn(topMarginPx, maxY)
+                Surface(
+                    shape = RoundedCornerShape(16.dp),
+                    color = MaterialTheme.colorScheme.inverseSurface,
+                    contentColor = MaterialTheme.colorScheme.inverseOnSurface,
+                    shadowElevation = 4.dp,
+                    modifier = Modifier
+                        .align(Alignment.TopEnd)
+                        .padding(end = 32.dp)
+                        .offset { IntOffset(0, offsetY.roundToInt()) },
+                ) {
+                    Text(
+                        text = "#${indicator.pageNumber} / ${indicator.totalPages}",
+                        style = MaterialTheme.typography.labelMedium,
+                        fontWeight = FontWeight.SemiBold,
+                        modifier = Modifier.padding(horizontal = 10.dp, vertical = 6.dp),
+                    )
+                }
             }
         }
     }

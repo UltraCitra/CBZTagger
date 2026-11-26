@@ -22,6 +22,7 @@ import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
@@ -398,23 +399,53 @@ private fun CbzItemCard(
                     maxLines = 2,
                     overflow = TextOverflow.Ellipsis,
                 )
-                val metaLine = buildString {
-                    if (item.comicInfo.series.isNotBlank()) {
-                        append(item.comicInfo.series)
-                        if (item.comicInfo.number.isNotBlank()) append(" #${item.comicInfo.number}")
-                        if (item.comicInfo.year != null) append(" (${item.comicInfo.year})")
-                    } else {
-                        append("메타데이터 없음")
+                val primaryMeta = item.comicInfo.formatLibraryPrimaryMeta()
+                val authorText = item.comicInfo.formatAuthorsDisplay()
+                Spacer(Modifier.height(2.dp))
+                if (primaryMeta.isBlank() && authorText.isBlank()) {
+                    Text(
+                        text = "메타데이터 없음",
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis,
+                    )
+                } else if (primaryMeta.isBlank()) {
+                    Text(
+                        text = authorText,
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.primary,
+                        fontWeight = FontWeight.Medium,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis,
+                    )
+                } else {
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(8.dp),
+                    ) {
+                        Text(
+                            text = primaryMeta,
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            maxLines = 1,
+                            overflow = TextOverflow.Ellipsis,
+                            modifier = Modifier.weight(1f),
+                        )
+                        if (authorText.isNotBlank()) {
+                            Text(
+                                text = authorText,
+                                style = MaterialTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.primary,
+                                fontWeight = FontWeight.Medium,
+                                maxLines = 1,
+                                overflow = TextOverflow.Ellipsis,
+                                modifier = Modifier.widthIn(max = 150.dp),
+                            )
+                        }
                     }
                 }
-                Spacer(Modifier.height(2.dp))
-                Text(
-                    text = metaLine,
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    maxLines = 1,
-                    overflow = TextOverflow.Ellipsis,
-                )
                 Spacer(Modifier.height(6.dp))
                 Row(
                     horizontalArrangement = Arrangement.spacedBy(6.dp),

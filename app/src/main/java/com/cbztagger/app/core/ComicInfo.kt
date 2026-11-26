@@ -81,10 +81,46 @@ data class ComicInfo(
                 publisher.isBlank() &&
                 summary.isBlank() &&
                 writer.isBlank() &&
+                penciller.isBlank() &&
                 genre.isBlank() &&
                 year == null &&
                 volume == null &&
                 pages.isEmpty()
+
+    /**
+     * Formats author credits prioritizing Penciller (그림작가) over Writer (글작가).
+     * - Same author for both: shown once.
+     * - Different authors: "그림작가 / 글작가".
+     */
+    fun formatAuthorsDisplay(): String {
+        val p = penciller.trim()
+        val w = writer.trim()
+        return when {
+            p.isNotBlank() && w.isNotBlank() -> {
+                if (p.equals(w, ignoreCase = true)) p else "$p / $w"
+            }
+            p.isNotBlank() -> p
+            w.isNotBlank() -> w
+            else -> ""
+        }
+    }
+
+    /**
+     * Primary library subtitle: "{series} #{number} ({year})" or "{title} ({year})" when series is blank.
+     */
+    fun formatLibraryPrimaryMeta(): String = buildString {
+        when {
+            series.isNotBlank() -> {
+                append(series.trim())
+                if (number.isNotBlank()) append(" #${number.trim()}")
+                if (year != null) append(" ($year)")
+            }
+            title.isNotBlank() -> {
+                append(title.trim())
+                if (year != null) append(" ($year)")
+            }
+        }
+    }
 
     fun applyBatchPatch(patch: BatchTagPatch): ComicInfo = copy(
         series = patch.series?.takeIf { it.isNotBlank() } ?: series,

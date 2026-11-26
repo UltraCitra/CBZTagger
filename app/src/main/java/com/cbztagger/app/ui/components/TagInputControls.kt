@@ -84,12 +84,12 @@ fun MangaSelectorRow(
 }
 
 /**
- * Combined Writer & Penciller input by default, with an adjacent checkbox to split into
- * separate Writer (글작가) and Penciller (그림작가) fields when they differ.
+ * Combined Penciller & Writer input by default, with an adjacent checkbox to split into
+ * separate Penciller (그림작가) and Writer (글작가) fields when they differ.
  *
  * Standard ComicInfo.xml convention:
+ * - Penciller = 그림작가 (art/pencils) — prioritized first
  * - Writer = 글작가 (story/script)
- * - Penciller = 그림작가 (art/pencils)
  */
 @Composable
 fun AuthorCreditInput(
@@ -100,7 +100,7 @@ fun AuthorCreditInput(
     modifier: Modifier = Modifier,
 ) {
     val initialSeparate = remember(resetKey) {
-        writer.isNotBlank() && penciller.isNotBlank() && writer.trim() != penciller.trim()
+        writer.isNotBlank() && penciller.isNotBlank() && !writer.trim().equals(penciller.trim(), ignoreCase = true)
     }
     var separateAuthors by remember(resetKey) { mutableStateOf(initialSeparate) }
 
@@ -109,7 +109,7 @@ fun AuthorCreditInput(
         verticalArrangement = Arrangement.spacedBy(8.dp),
     ) {
         if (!separateAuthors) {
-            val combinedValue = writer.ifBlank { penciller }
+            val combinedValue = penciller.ifBlank { writer }
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 verticalAlignment = Alignment.CenterVertically,
@@ -118,7 +118,7 @@ fun AuthorCreditInput(
                 OutlinedTextField(
                     value = combinedValue,
                     onValueChange = { v -> onChange(v, v) },
-                    label = { Text("작가 (글·그림)") },
+                    label = { Text("작가 (그림·글)") },
                     singleLine = true,
                     modifier = Modifier.weight(1f),
                 )
@@ -149,7 +149,7 @@ fun AuthorCreditInput(
                         },
                     )
                     Text(
-                        text = "글·그림 다름",
+                        text = "그림·글 다름",
                         style = MaterialTheme.typography.labelSmall,
                         maxLines = 1,
                     )
@@ -161,7 +161,7 @@ fun AuthorCreditInput(
                     .fillMaxWidth()
                     .clickable {
                         separateAuthors = false
-                        val unified = writer.ifBlank { penciller }
+                        val unified = penciller.ifBlank { writer }
                         onChange(unified, unified)
                     },
                 verticalAlignment = Alignment.CenterVertically,
@@ -171,27 +171,27 @@ fun AuthorCreditInput(
                     onCheckedChange = { checked ->
                         if (!checked) {
                             separateAuthors = false
-                            val unified = writer.ifBlank { penciller }
+                            val unified = penciller.ifBlank { writer }
                             onChange(unified, unified)
                         }
                     },
                 )
                 Text(
-                    text = "글작가와 그림작가가 다릅니다",
+                    text = "그림작가와 글작가가 다릅니다",
                     style = MaterialTheme.typography.bodySmall,
                 )
             }
             OutlinedTextField(
-                value = writer,
-                onValueChange = { v -> onChange(v, penciller) },
-                label = { Text("글작가 (Writer)") },
+                value = penciller,
+                onValueChange = { v -> onChange(writer, v) },
+                label = { Text("그림작가 (Penciller)") },
                 singleLine = true,
                 modifier = Modifier.fillMaxWidth(),
             )
             OutlinedTextField(
-                value = penciller,
-                onValueChange = { v -> onChange(writer, v) },
-                label = { Text("그림작가 (Penciller)") },
+                value = writer,
+                onValueChange = { v -> onChange(v, penciller) },
+                label = { Text("글작가 (Writer)") },
                 singleLine = true,
                 modifier = Modifier.fillMaxWidth(),
             )
