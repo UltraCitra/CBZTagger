@@ -1,5 +1,13 @@
 package com.cbztagger.app.ui.components
 
+import androidx.compose.animation.AnimatedContent
+import androidx.compose.animation.SizeTransform
+import androidx.compose.animation.core.tween
+import androidx.compose.animation.expandVertically
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.shrinkVertically
+import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -101,23 +109,39 @@ fun ZipCompressionControl(
             }
         }
 
-        if (isCompressMode) {
-            Spacer(Modifier.height(6.dp))
-            ZipCompressionSlider(
-                level = level.coerceIn(0, 9),
-                onLevelChange = { newLevel ->
-                    lastSliderLevel = newLevel
-                    onLevelChange(newLevel)
-                },
-                showHeader = false,
-            )
-        } else {
-            Spacer(Modifier.height(6.dp))
-            Text(
-                text = "기존 이미지의 압축 방식을 그대로 유지하고 ComicInfo.xml 태그만 빠르게 갱신합니다.",
-                style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-            )
+        AnimatedContent(
+            targetState = isCompressMode,
+            transitionSpec = {
+                (fadeIn(animationSpec = tween(220)) + expandVertically(animationSpec = tween(220), expandFrom = Alignment.Top))
+                    .togetherWith(
+                        fadeOut(animationSpec = tween(160)) + shrinkVertically(animationSpec = tween(200), shrinkTowards = Alignment.Top),
+                    )
+                    .using(SizeTransform(clip = true))
+            },
+            label = "zip_compression_mode",
+        ) { compress ->
+            if (compress) {
+                Column(modifier = Modifier.fillMaxWidth()) {
+                    Spacer(Modifier.height(6.dp))
+                    ZipCompressionSlider(
+                        level = if (level in 0..9) level else lastSliderLevel,
+                        onLevelChange = { newLevel ->
+                            lastSliderLevel = newLevel
+                            onLevelChange(newLevel)
+                        },
+                        showHeader = false,
+                    )
+                }
+            } else {
+                Column(modifier = Modifier.fillMaxWidth()) {
+                    Spacer(Modifier.height(6.dp))
+                    Text(
+                        text = "기존 이미지의 압축 방식을 그대로 유지하고 ComicInfo.xml 태그만 빠르게 갱신합니다.",
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    )
+                }
+            }
         }
     }
 }

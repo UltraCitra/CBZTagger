@@ -2,6 +2,17 @@ package com.cbztagger.app.ui.screens
 
 import android.graphics.Bitmap
 import android.net.Uri
+import androidx.compose.animation.AnimatedContent
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.SizeTransform
+import androidx.compose.animation.core.tween
+import androidx.compose.animation.expandHorizontally
+import androidx.compose.animation.expandVertically
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.shrinkHorizontally
+import androidx.compose.animation.shrinkVertically
+import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
@@ -587,167 +598,179 @@ private fun PagesTab(
     Column(modifier = Modifier.fillMaxSize()) {
         // Sticky top action bar for batch page attribute editing & bulk bookmarks
         Surface(tonalElevation = 2.dp, modifier = Modifier.fillMaxWidth()) {
-            if (!batchMode) {
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(horizontal = 12.dp, vertical = 8.dp),
-                    horizontalArrangement = Arrangement.spacedBy(8.dp),
-                    verticalAlignment = Alignment.CenterVertically,
-                ) {
-                    FilledTonalButton(
-                        onClick = {
-                            batchMode = true
-                            selectedIndices = emptySet()
-                        },
-                        modifier = Modifier.weight(1f),
-                    ) {
-                        Icon(Icons.Default.Checklist, contentDescription = null, modifier = Modifier.size(18.dp))
-                        Spacer(Modifier.width(6.dp))
-                        Text("일괄 속성 편집", maxLines = 1, overflow = TextOverflow.Ellipsis)
-                    }
-                    OutlinedButton(
-                        onClick = { showBatchBookmarkDialog = true },
-                        modifier = Modifier.weight(1f),
-                    ) {
-                        Icon(Icons.Default.BookmarkAdd, contentDescription = null, modifier = Modifier.size(18.dp))
-                        Spacer(Modifier.width(6.dp))
-                        Text("북마크 지정", maxLines = 1, overflow = TextOverflow.Ellipsis)
-                    }
-                }
-            } else {
-                Column(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(horizontal = 12.dp, vertical = 8.dp),
-                    verticalArrangement = Arrangement.spacedBy(6.dp),
-                ) {
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.SpaceBetween,
-                        verticalAlignment = Alignment.CenterVertically,
-                    ) {
-                        Text(
-                            text = "일괄 속성 편집 (${selectedIndices.size}/${pageCount} 선택)",
-                            style = MaterialTheme.typography.titleSmall,
-                            fontWeight = FontWeight.Bold,
+            AnimatedContent(
+                targetState = batchMode,
+                transitionSpec = {
+                    (fadeIn(animationSpec = tween(220)) + expandVertically(animationSpec = tween(220), expandFrom = Alignment.Top))
+                        .togetherWith(
+                            fadeOut(animationSpec = tween(160)) + shrinkVertically(animationSpec = tween(200), shrinkTowards = Alignment.Top),
                         )
-                        TextButton(
-                            onClick = {
-                                batchMode = false
-                                selectedIndices = emptySet()
-                            },
-                        ) {
-                            Text("완료")
-                        }
-                    }
-
+                        .using(SizeTransform(clip = true))
+                },
+                label = "pages_batch_mode_bar",
+            ) { inBatchMode ->
+                if (!inBatchMode) {
                     Row(
                         modifier = Modifier
                             .fillMaxWidth()
-                            .horizontalScroll(rememberScrollState()),
-                        horizontalArrangement = Arrangement.spacedBy(6.dp),
+                            .padding(horizontal = 12.dp, vertical = 8.dp),
+                        horizontalArrangement = Arrangement.spacedBy(8.dp),
                         verticalAlignment = Alignment.CenterVertically,
                     ) {
-                        AssistChip(
+                        FilledTonalButton(
                             onClick = {
-                                selectedIndices = if (selectedIndices.size == pageCount) {
-                                    emptySet()
-                                } else {
-                                    (0 until pageCount).toSet()
-                                }
+                                batchMode = true
+                                selectedIndices = emptySet()
                             },
-                            label = { Text(if (selectedIndices.size == pageCount) "전체 해제" else "전체 선택") },
-                        )
-                        AssistChip(
-                            onClick = { showRangeDialog = true },
-                            label = { Text("범위 선택 (시작~끝)") },
-                        )
-                        AssistChip(
-                            onClick = {
-                                val (updated, _) = PageBatchHelper.fillEmptyTypesWithStory(normalizedPages, pageCount)
-                                onReplaceAllPages(updated)
-                            },
-                            enabled = emptyTypeCount > 0,
-                            label = { Text("빈 페이지 일괄 Story ($emptyTypeCount)") },
-                        )
-                        AssistChip(
-                            onClick = { showBatchBookmarkDialog = true },
-                            label = { Text("북마크 지정") },
-                        )
-                    }
-
-                    Box(modifier = Modifier.fillMaxWidth()) {
-                        Button(
-                            onClick = { showBatchTypeMenu = true },
-                            enabled = selectedIndices.isNotEmpty(),
-                            modifier = Modifier.fillMaxWidth(),
+                            modifier = Modifier.weight(1f),
                         ) {
-                            Text("선택한 ${selectedIndices.size}페이지에 속성 일괄 적용")
-                            Icon(Icons.Default.ArrowDropDown, contentDescription = null)
+                            Icon(Icons.Default.Checklist, contentDescription = null, modifier = Modifier.size(18.dp))
+                            Spacer(Modifier.width(6.dp))
+                            Text("일괄 속성 편집", maxLines = 1, overflow = TextOverflow.Ellipsis)
                         }
-                        DropdownMenu(
-                            expanded = showBatchTypeMenu,
-                            onDismissRequest = { showBatchTypeMenu = false },
+                        OutlinedButton(
+                            onClick = { showBatchBookmarkDialog = true },
+                            modifier = Modifier.weight(1f),
                         ) {
-                            DropdownMenuItem(
-                                text = { Text("일반 (속성 초기화)") },
+                            Icon(Icons.Default.BookmarkAdd, contentDescription = null, modifier = Modifier.size(18.dp))
+                            Spacer(Modifier.width(6.dp))
+                            Text("북마크 지정", maxLines = 1, overflow = TextOverflow.Ellipsis)
+                        }
+                    }
+                } else {
+                    Column(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(horizontal = 12.dp, vertical = 8.dp),
+                        verticalArrangement = Arrangement.spacedBy(6.dp),
+                    ) {
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.SpaceBetween,
+                            verticalAlignment = Alignment.CenterVertically,
+                        ) {
+                            Text(
+                                text = "일괄 속성 편집 (${selectedIndices.size}/${pageCount} 선택)",
+                                style = MaterialTheme.typography.titleSmall,
+                                fontWeight = FontWeight.Bold,
+                            )
+                            TextButton(
                                 onClick = {
-                                    showBatchTypeMenu = false
-                                    onReplaceAllPages(
-                                        PageBatchHelper.applyTypeToSelection(normalizedPages, pageCount, selectedIndices, ""),
-                                    )
+                                    batchMode = false
                                     selectedIndices = emptySet()
                                 },
+                            ) {
+                                Text("완료")
+                            }
+                        }
+
+                        Row(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .horizontalScroll(rememberScrollState()),
+                            horizontalArrangement = Arrangement.spacedBy(6.dp),
+                            verticalAlignment = Alignment.CenterVertically,
+                        ) {
+                            AssistChip(
+                                onClick = {
+                                    selectedIndices = if (selectedIndices.size == pageCount) {
+                                        emptySet()
+                                    } else {
+                                        (0 until pageCount).toSet()
+                                    }
+                                },
+                                label = { Text(if (selectedIndices.size == pageCount) "전체 해제" else "전체 선택") },
                             )
-                            PageType.entries.forEach { pt ->
+                            AssistChip(
+                                onClick = { showRangeDialog = true },
+                                label = { Text("범위 선택 (시작~끝)") },
+                            )
+                            AssistChip(
+                                onClick = {
+                                    val (updated, _) = PageBatchHelper.fillEmptyTypesWithStory(normalizedPages, pageCount)
+                                    onReplaceAllPages(updated)
+                                },
+                                enabled = emptyTypeCount > 0,
+                                label = { Text("빈 페이지 일괄 Story ($emptyTypeCount)") },
+                            )
+                            AssistChip(
+                                onClick = { showBatchBookmarkDialog = true },
+                                label = { Text("북마크 지정") },
+                            )
+                        }
+
+                        Box(modifier = Modifier.fillMaxWidth()) {
+                            Button(
+                                onClick = { showBatchTypeMenu = true },
+                                enabled = selectedIndices.isNotEmpty(),
+                                modifier = Modifier.fillMaxWidth(),
+                            ) {
+                                Text("선택한 ${selectedIndices.size}페이지에 속성 일괄 적용")
+                                Icon(Icons.Default.ArrowDropDown, contentDescription = null)
+                            }
+                            DropdownMenu(
+                                expanded = showBatchTypeMenu,
+                                onDismissRequest = { showBatchTypeMenu = false },
+                            ) {
                                 DropdownMenuItem(
-                                    text = { Text(pt.labelKo) },
+                                    text = { Text("일반 (속성 초기화)") },
                                     onClick = {
                                         showBatchTypeMenu = false
                                         onReplaceAllPages(
-                                            PageBatchHelper.applyTypeToSelection(
+                                            PageBatchHelper.applyTypeToSelection(normalizedPages, pageCount, selectedIndices, ""),
+                                        )
+                                        selectedIndices = emptySet()
+                                    },
+                                )
+                                PageType.entries.forEach { pt ->
+                                    DropdownMenuItem(
+                                        text = { Text(pt.labelKo) },
+                                        onClick = {
+                                            showBatchTypeMenu = false
+                                            onReplaceAllPages(
+                                                PageBatchHelper.applyTypeToSelection(
+                                                    normalizedPages,
+                                                    pageCount,
+                                                    selectedIndices,
+                                                    pt.xmlValue,
+                                                ),
+                                            )
+                                            selectedIndices = emptySet()
+                                        },
+                                    )
+                                }
+                                HorizontalDivider()
+                                DropdownMenuItem(
+                                    text = { Text("양면(DoublePage) 일괄 설정") },
+                                    onClick = {
+                                        showBatchTypeMenu = false
+                                        onReplaceAllPages(
+                                            PageBatchHelper.applyDoublePageToSelection(
                                                 normalizedPages,
                                                 pageCount,
                                                 selectedIndices,
-                                                pt.xmlValue,
+                                                true,
+                                            ),
+                                        )
+                                        selectedIndices = emptySet()
+                                    },
+                                )
+                                DropdownMenuItem(
+                                    text = { Text("양면(DoublePage) 일괄 해제") },
+                                    onClick = {
+                                        showBatchTypeMenu = false
+                                        onReplaceAllPages(
+                                            PageBatchHelper.applyDoublePageToSelection(
+                                                normalizedPages,
+                                                pageCount,
+                                                selectedIndices,
+                                                null,
                                             ),
                                         )
                                         selectedIndices = emptySet()
                                     },
                                 )
                             }
-                            HorizontalDivider()
-                            DropdownMenuItem(
-                                text = { Text("양면(DoublePage) 일괄 설정") },
-                                onClick = {
-                                    showBatchTypeMenu = false
-                                    onReplaceAllPages(
-                                        PageBatchHelper.applyDoublePageToSelection(
-                                            normalizedPages,
-                                            pageCount,
-                                            selectedIndices,
-                                            true,
-                                        ),
-                                    )
-                                    selectedIndices = emptySet()
-                                },
-                            )
-                            DropdownMenuItem(
-                                text = { Text("양면(DoublePage) 일괄 해제") },
-                                onClick = {
-                                    showBatchTypeMenu = false
-                                    onReplaceAllPages(
-                                        PageBatchHelper.applyDoublePageToSelection(
-                                            normalizedPages,
-                                            pageCount,
-                                            selectedIndices,
-                                            null,
-                                        ),
-                                    )
-                                    selectedIndices = emptySet()
-                                },
-                            )
                         }
                     }
                 }
@@ -802,28 +825,30 @@ private fun PagesTab(
                         .padding(horizontal = 12.dp, vertical = 8.dp),
                     verticalAlignment = Alignment.CenterVertically,
                 ) {
-                    if (batchMode) {
-                        Checkbox(
-                            checked = isSelected,
-                            onCheckedChange = { checked ->
-                                selectedIndices = if (checked) selectedIndices + idx else selectedIndices - idx
-                            },
-                        )
-                        if (showThumbnails) {
-                            Spacer(Modifier.width(4.dp))
-                            PageListThumbnail(
-                                uri = itemUri,
-                                entryName = entryName,
-                                onLoad = onLoadThumbnail,
+                    AnimatedVisibility(
+                        visible = batchMode,
+                        enter = expandHorizontally(animationSpec = tween(200), expandFrom = Alignment.Start) + fadeIn(tween(180)),
+                        exit = shrinkHorizontally(animationSpec = tween(180), shrinkTowards = Alignment.Start) + fadeOut(tween(140)),
+                    ) {
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            Checkbox(
+                                checked = isSelected,
+                                onCheckedChange = { checked ->
+                                    selectedIndices = if (checked) selectedIndices + idx else selectedIndices - idx
+                                },
                             )
+                            if (showThumbnails) {
+                                Spacer(Modifier.width(4.dp))
+                            }
                         }
-                    } else if (showThumbnails) {
+                    }
+                    if (showThumbnails) {
                         PageListThumbnail(
                             uri = itemUri,
                             entryName = entryName,
                             onLoad = onLoadThumbnail,
                         )
-                    } else {
+                    } else if (!batchMode) {
                         Icon(
                             imageVector = Icons.Default.Image,
                             contentDescription = null,
@@ -888,53 +913,59 @@ private fun PagesTab(
                             )
                         }
                     }
-                    if (batchMode) {
-                        Surface(
-                            shape = RoundedCornerShape(6.dp),
-                            color = if (pageInfo.type.isNotBlank()) {
-                                MaterialTheme.colorScheme.secondaryContainer
-                            } else {
-                                MaterialTheme.colorScheme.surfaceVariant
-                            },
-                        ) {
-                            Text(
-                                text = pageInfo.type.ifBlank { "일반" },
-                                style = MaterialTheme.typography.labelSmall,
-                                modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp),
-                            )
-                        }
-                    } else {
-                        Box {
-                            TextButton(onClick = { typeExpanded = true }) {
-                                Text(pageInfo.type.ifBlank { "일반" })
-                                Icon(Icons.Default.ArrowDropDown, contentDescription = null)
-                            }
-                            DropdownMenu(expanded = typeExpanded, onDismissRequest = { typeExpanded = false }) {
-                                DropdownMenuItem(
-                                    text = { Text("일반 (지정 안 함)") },
-                                    onClick = {
-                                        typeExpanded = false
-                                        onUpdatePage(idx, pageInfo.copy(type = ""))
-                                    },
+                    AnimatedContent(
+                        targetState = batchMode,
+                        transitionSpec = { fadeIn(tween(180)) togetherWith fadeOut(tween(140)) },
+                        label = "page_row_trailing",
+                    ) { inBatchMode ->
+                        if (inBatchMode) {
+                            Surface(
+                                shape = RoundedCornerShape(6.dp),
+                                color = if (pageInfo.type.isNotBlank()) {
+                                    MaterialTheme.colorScheme.secondaryContainer
+                                } else {
+                                    MaterialTheme.colorScheme.surfaceVariant
+                                },
+                            ) {
+                                Text(
+                                    text = pageInfo.type.ifBlank { "일반" },
+                                    style = MaterialTheme.typography.labelSmall,
+                                    modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp),
                                 )
-                                PageType.entries.forEach { pt ->
+                            }
+                        } else {
+                            Box {
+                                TextButton(onClick = { typeExpanded = true }) {
+                                    Text(pageInfo.type.ifBlank { "일반" })
+                                    Icon(Icons.Default.ArrowDropDown, contentDescription = null)
+                                }
+                                DropdownMenu(expanded = typeExpanded, onDismissRequest = { typeExpanded = false }) {
                                     DropdownMenuItem(
-                                        text = { Text(pt.labelKo) },
+                                        text = { Text("일반 (지정 안 함)") },
                                         onClick = {
                                             typeExpanded = false
-                                            onUpdatePage(idx, pageInfo.copy(type = pt.xmlValue))
+                                            onUpdatePage(idx, pageInfo.copy(type = ""))
+                                        },
+                                    )
+                                    PageType.entries.forEach { pt ->
+                                        DropdownMenuItem(
+                                            text = { Text(pt.labelKo) },
+                                            onClick = {
+                                                typeExpanded = false
+                                                onUpdatePage(idx, pageInfo.copy(type = pt.xmlValue))
+                                            },
+                                        )
+                                    }
+                                    HorizontalDivider()
+                                    DropdownMenuItem(
+                                        text = { Text(if (pageInfo.doublePage == true) "양면 해제" else "양면(DoublePage) 설정") },
+                                        onClick = {
+                                            typeExpanded = false
+                                            val next = if (pageInfo.doublePage == true) null else true
+                                            onUpdatePage(idx, pageInfo.copy(doublePage = next))
                                         },
                                     )
                                 }
-                                HorizontalDivider()
-                                DropdownMenuItem(
-                                    text = { Text(if (pageInfo.doublePage == true) "양면 해제" else "양면(DoublePage) 설정") },
-                                    onClick = {
-                                        typeExpanded = false
-                                        val next = if (pageInfo.doublePage == true) null else true
-                                        onUpdatePage(idx, pageInfo.copy(doublePage = next))
-                                    },
-                                )
                             }
                         }
                     }
