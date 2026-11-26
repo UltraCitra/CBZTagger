@@ -1,5 +1,7 @@
 package com.cbztagger.app.ui.screens
 
+import android.content.pm.PackageManager
+import android.os.Build
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -33,8 +35,10 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.cbztagger.app.core.FileRenamer
@@ -51,6 +55,21 @@ fun SettingsScreen(
     onClearExternalFolder: () -> Unit,
     onBack: () -> Unit,
 ) {
+    val context = LocalContext.current
+    val appVersionName = remember(context) {
+        runCatching {
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+                context.packageManager.getPackageInfo(
+                    context.packageName,
+                    PackageManager.PackageInfoFlags.of(0),
+                ).versionName
+            } else {
+                @Suppress("DEPRECATION")
+                context.packageManager.getPackageInfo(context.packageName, 0).versionName
+            }
+        }.getOrNull().orEmpty()
+    }
+
     Scaffold(
         topBar = {
             TopAppBar(
@@ -313,11 +332,36 @@ fun SettingsScreen(
                     modifier = Modifier.padding(14.dp),
                     verticalArrangement = Arrangement.spacedBy(4.dp),
                 ) {
-                    Text("앱 정보", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically,
+                    ) {
+                        Text(
+                            text = "앱 정보",
+                            style = MaterialTheme.typography.titleMedium,
+                            fontWeight = FontWeight.Bold,
+                        )
+                        if (appVersionName.isNotBlank()) {
+                            Text(
+                                text = "v$appVersionName",
+                                style = MaterialTheme.typography.labelSmall,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            )
+                        }
+                    }
                     HorizontalDivider(modifier = Modifier.padding(vertical = 4.dp))
-                    Text("CBZTagger (Android Native · 완전 오프라인)", style = MaterialTheme.typography.bodyMedium)
                     Text(
-                        text = "• CBZ(ZIP) 전용 · ComicInfo.xml 스키마 호환\n• 인터넷 권한 없음 (완전 오프라인 동작)\n• 외부 이미지 폴더 → 무압축 CBZ 불러오기, 태그 저장 시 ZIP 압축률 설정(기존 유지 / 0~9), 일괄 작업 지원",
+                        text = "CBZTagger",
+                        style = MaterialTheme.typography.bodyMedium,
+                        fontWeight = FontWeight.SemiBold,
+                    )
+                    Text(
+                        text = "만화 CBZ 파일의 메타데이터(ComicInfo.xml)를 오프라인에서 간편하게 편집하고 관리하는 앱입니다.\n" +
+                            "• 인터넷 연결 없이 기기 내에서만 안전하게 동작\n" +
+                            "• 태그·페이지 속성·북마크 편집 및 미리보기 지원\n" +
+                            "• 외부 이미지 폴더를 CBZ로 묶어 불러오기\n" +
+                            "• ZIP 압축 단계 설정 및 일괄 태그·리네임·재압축 지원",
                         style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                     )
