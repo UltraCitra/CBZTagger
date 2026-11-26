@@ -1,0 +1,22 @@
+# Gradle & Kotlin caches
+.gradle/
+.kotlin/
+build/
+app/build/
+
+# Android Studio / IntelliJ
+.idea/
+*.iml
+local.properties
+
+# Release signing secrets & outputs
+*.jks
+*.keystore
+keystore.properties
+*.apk
+*.aab
+
+# OS files
+.DS_Store
+Thumbs.db
+dist/
