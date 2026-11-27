@@ -151,7 +151,7 @@
     <string name="pages_double_label">양면 페이지</string>
     <string name="pages_double_short">양면</string>
     <string name="pages_cd_bookmark">북마크</string>
-    <string name="pages_subtitle_tap_select">탭하여 선택</string>
+    <string name="pages_subtitle_batch_hint">탭하여 선택 · 길게 눌러 북마크 편집</string>
     <string name="pages_subtitle_hint">탭하여 미리보기 · 길게 눌러 북마크 편집</string>
     <string name="pages_bookmark_dialog_title">페이지 #%1$d 북마크</string>
     <string name="pages_bookmark_name_label">북마크 이름</string>

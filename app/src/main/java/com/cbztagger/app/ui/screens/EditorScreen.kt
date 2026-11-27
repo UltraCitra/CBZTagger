@@ -636,43 +636,62 @@ private fun PagesTab(
     Column(modifier = Modifier.fillMaxSize()) {
         // Sticky top action bar for batch page attribute editing, bulk bookmarks & sequential filename renumbering
         Surface(tonalElevation = 2.dp, modifier = Modifier.fillMaxWidth()) {
-            AnimatedContent(
-                targetState = batchMode,
-                transitionSpec = {
-                    (fadeIn(animationSpec = tween(220)) + expandVertically(animationSpec = tween(220), expandFrom = Alignment.Top))
-                        .togetherWith(
-                            fadeOut(animationSpec = tween(160)) + shrinkVertically(animationSpec = tween(200), shrinkTowards = Alignment.Top),
-                        )
-                        .using(SizeTransform(clip = true))
-                },
-                label = "pages_batch_mode_bar",
-            ) { inBatchMode ->
-                if (!inBatchMode) {
-                    Row(
+            Column(modifier = Modifier.fillMaxWidth()) {
+                AnimatedContent(
+                    targetState = batchMode,
+                    transitionSpec = { fadeIn(tween(180)) togetherWith fadeOut(tween(140)) },
+                    label = "pages_hint_banner",
+                ) { inBatchMode ->
+                    Text(
+                        text = stringResource(
+                            if (inBatchMode) R.string.pages_subtitle_batch_hint else R.string.pages_subtitle_hint,
+                        ),
+                        style = MaterialTheme.typography.labelSmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis,
                         modifier = Modifier
                             .fillMaxWidth()
-                            .padding(horizontal = 12.dp, vertical = 8.dp),
-                        verticalAlignment = Alignment.CenterVertically,
-                    ) {
-                        FilledTonalButton(
-                            onClick = {
-                                onBatchModeChange(true)
-                                selectedIndices = emptySet()
-                            },
-                            modifier = Modifier.fillMaxWidth(),
+                            .padding(start = 12.dp, end = 12.dp, top = 8.dp, bottom = 2.dp),
+                    )
+                }
+                AnimatedContent(
+                    targetState = batchMode,
+                    transitionSpec = {
+                        (fadeIn(animationSpec = tween(220)) + expandVertically(animationSpec = tween(220), expandFrom = Alignment.Top))
+                            .togetherWith(
+                                fadeOut(animationSpec = tween(160)) + shrinkVertically(animationSpec = tween(200), shrinkTowards = Alignment.Top),
+                            )
+                            .using(SizeTransform(clip = true))
+                    },
+                    label = "pages_batch_mode_bar",
+                ) { inBatchMode ->
+                    if (!inBatchMode) {
+                        Row(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(start = 12.dp, end = 12.dp, top = 4.dp, bottom = 8.dp),
+                            verticalAlignment = Alignment.CenterVertically,
                         ) {
-                            Icon(Icons.Default.Checklist, contentDescription = null, modifier = Modifier.size(18.dp))
-                            Spacer(Modifier.width(6.dp))
-                            Text(stringResource(R.string.pages_btn_batch_edit), maxLines = 1, overflow = TextOverflow.Ellipsis)
+                            FilledTonalButton(
+                                onClick = {
+                                    onBatchModeChange(true)
+                                    selectedIndices = emptySet()
+                                },
+                                modifier = Modifier.fillMaxWidth(),
+                            ) {
+                                Icon(Icons.Default.Checklist, contentDescription = null, modifier = Modifier.size(18.dp))
+                                Spacer(Modifier.width(6.dp))
+                                Text(stringResource(R.string.pages_btn_batch_edit), maxLines = 1, overflow = TextOverflow.Ellipsis)
+                            }
                         }
-                    }
-                } else {
-                    Column(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(horizontal = 12.dp, vertical = 8.dp),
-                        verticalArrangement = Arrangement.spacedBy(6.dp),
-                    ) {
+                    } else {
+                        Column(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(start = 12.dp, end = 12.dp, top = 2.dp, bottom = 8.dp),
+                            verticalArrangement = Arrangement.spacedBy(6.dp),
+                        ) {
                         Row(
                             modifier = Modifier.fillMaxWidth(),
                             horizontalArrangement = Arrangement.SpaceBetween,
@@ -826,6 +845,7 @@ private fun PagesTab(
                                     },
                                 )
                             }
+                            }
                         }
                     }
                 }
@@ -952,14 +972,9 @@ private fun PagesTab(
                                     overflow = TextOverflow.Ellipsis,
                                 )
                             }
-                        } else {
-                            val subtitle = when {
-                                pageInfo.doublePage == true -> stringResource(R.string.pages_double_label)
-                                batchMode -> stringResource(R.string.pages_subtitle_tap_select)
-                                else -> stringResource(R.string.pages_subtitle_hint)
-                            }
+                        } else if (pageInfo.doublePage == true) {
                             Text(
-                                text = subtitle,
+                                text = stringResource(R.string.pages_double_label),
                                 style = MaterialTheme.typography.labelSmall,
                                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                                 maxLines = 1,

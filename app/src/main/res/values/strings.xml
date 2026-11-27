@@ -151,7 +151,7 @@
     <string name="pages_double_label">Double page</string>
     <string name="pages_double_short">Double</string>
     <string name="pages_cd_bookmark">Bookmark</string>
-    <string name="pages_subtitle_tap_select">Tap to select</string>
+    <string name="pages_subtitle_batch_hint">Tap to select · Long-press to edit bookmark</string>
     <string name="pages_subtitle_hint">Tap to preview · Long-press to edit bookmark</string>
     <string name="pages_bookmark_dialog_title">Page #%1$d Bookmark</string>
     <string name="pages_bookmark_name_label">Bookmark name</string>
