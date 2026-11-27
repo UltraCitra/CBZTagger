@@ -980,6 +980,13 @@ private fun PagesTab(
                                 maxLines = 1,
                                 overflow = TextOverflow.Ellipsis,
                             )
+                        } else {
+                            // Reserve the same second-line height so #index · filename aligns across all rows
+                            Text(
+                                text = "",
+                                style = MaterialTheme.typography.labelSmall,
+                                maxLines = 1,
+                            )
                         }
                     }
                     AnimatedContent(
