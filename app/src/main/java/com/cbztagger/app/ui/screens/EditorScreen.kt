@@ -1277,14 +1277,11 @@ private fun PageImagePreviewDialog(
     val displayEntryName = displayPageNames.getOrNull(currentIndex) ?: entryName
     val currentPageInfo = pages.firstOrNull { it.image == currentIndex }
     val doubleShortLabel = stringResource(R.string.pages_double_short)
-    val bookmarkText = currentPageInfo?.bookmark?.takeIf { it.isNotBlank() }?.let {
-        stringResource(R.string.preview_bookmark_prefix, it)
-    }
-    val pageMetaText = buildList {
+    val bookmarkName = currentPageInfo?.bookmark?.trim().orEmpty()
+    val pageAttrText = buildList {
         val typeVal = currentPageInfo?.type.orEmpty()
         if (typeVal.isNotBlank()) add(typeVal)
         if (currentPageInfo?.doublePage == true) add(doubleShortLabel)
-        if (!bookmarkText.isNullOrBlank()) add(bookmarkText)
     }.joinToString(" · ")
 
     // Keep previous bitmap visible during decode so turning pages never collapses/re-animates the dialog
@@ -1336,14 +1333,41 @@ private fun PageImagePreviewDialog(
                                 overflow = TextOverflow.Ellipsis,
                                 modifier = Modifier.weight(1f, fill = false),
                             )
-                            if (pageMetaText.isNotBlank()) {
+                            if (pageAttrText.isNotBlank()) {
                                 Text(
-                                    text = pageMetaText,
+                                    text = pageAttrText,
                                     style = MaterialTheme.typography.labelSmall,
                                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                                     maxLines = 1,
                                     overflow = TextOverflow.Ellipsis,
                                 )
+                            }
+                            if (bookmarkName.isNotBlank()) {
+                                if (pageAttrText.isNotBlank()) {
+                                    Text(
+                                        text = "·",
+                                        style = MaterialTheme.typography.labelSmall,
+                                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                    )
+                                }
+                                Row(
+                                    verticalAlignment = Alignment.CenterVertically,
+                                    horizontalArrangement = Arrangement.spacedBy(2.dp),
+                                ) {
+                                    Icon(
+                                        imageVector = Icons.Default.Bookmark,
+                                        contentDescription = stringResource(R.string.pages_cd_bookmark),
+                                        tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                                        modifier = Modifier.size(14.dp),
+                                    )
+                                    Text(
+                                        text = ": $bookmarkName",
+                                        style = MaterialTheme.typography.labelSmall,
+                                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                        maxLines = 1,
+                                        overflow = TextOverflow.Ellipsis,
+                                    )
+                                }
                             }
                         }
                         Text(
