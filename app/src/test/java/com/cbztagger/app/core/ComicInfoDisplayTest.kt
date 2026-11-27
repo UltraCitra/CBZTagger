@@ -45,6 +45,39 @@ class ComicInfoDisplayTest {
     }
 
     @Test
+    fun formatLibraryCardLines_promotesMetadataOnlyWhenTitleOrSeriesAndNumberPresent() {
+        // Series + Number present -> metadata on top, filename underneath
+        assertEquals(
+            "원피스 #001 (2024) | 오다 에이치로" to "onepiece_001.cbz",
+            ComicInfo(series = "원피스", number = "001", year = 2024, penciller = "오다 에이치로")
+                .formatLibraryCardLines("onepiece_001.cbz"),
+        )
+        // Title present (one-shot) -> metadata on top, filename underneath
+        assertEquals(
+            "단편 제목 (2025) | 홍길동" to "oneshot.cbz",
+            ComicInfo(title = "단편 제목", year = 2025, penciller = "홍길동")
+                .formatLibraryCardLines("oneshot.cbz"),
+        )
+        // Series without Number and without Title -> insufficient, keep filename on top
+        assertEquals(
+            "raw_01.cbz" to "원피스 | 오다 에이치로",
+            ComicInfo(series = "원피스", penciller = "오다 에이치로")
+                .formatLibraryCardLines("raw_01.cbz"),
+        )
+        // Author only -> insufficient, keep filename on top
+        assertEquals(
+            "raw_02.cbz" to "홍길동",
+            ComicInfo(penciller = "홍길동")
+                .formatLibraryCardLines("raw_02.cbz"),
+        )
+        // Empty metadata -> filename on top, fallback underneath
+        assertEquals(
+            "raw_03.cbz" to "No metadata",
+            ComicInfo().formatLibraryCardLines("raw_03.cbz", emptyFallback = "No metadata"),
+        )
+    }
+
+    @Test
     fun fastScrollbarMath_handlesZeroAndNormalTrackHeights() {
         val zeroThumb = FastScrollbarMath.computeThumbHeight(0f, 24f, 132f, 0.1f)
         assertEquals(1f, zeroThumb, 0.001f)

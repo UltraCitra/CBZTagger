@@ -106,17 +106,30 @@ data class ComicInfo(
     }
 
     /**
-     * Primary library subtitle: "{series} #{number} ({year})" or "{title} ({year})" when series is blank.
+     * Returns true when metadata has enough identifying info to be shown above the filename
+     * on the main library card: either (Series + Number) or Title.
+     * Author-only or Series without Number (and without Title) does not qualify.
+     */
+    fun hasLibraryHeadlineMeta(): Boolean =
+        (series.isNotBlank() && number.isNotBlank()) || title.isNotBlank()
+
+    /**
+     * Primary library metadata: "{series} #{number} ({year})", "{title} ({year})",
+     * or "{series} ({year})" as fallback when neither number nor title is set.
      */
     fun formatLibraryPrimaryMeta(): String = buildString {
         when {
-            series.isNotBlank() -> {
+            series.isNotBlank() && number.isNotBlank() -> {
                 append(series.trim())
-                if (number.isNotBlank()) append(" #${number.trim()}")
+                append(" #${number.trim()}")
                 if (year != null) append(" ($year)")
             }
             title.isNotBlank() -> {
                 append(title.trim())
+                if (year != null) append(" ($year)")
+            }
+            series.isNotBlank() -> {
+                append(series.trim())
                 if (year != null) append(" ($year)")
             }
         }
@@ -134,6 +147,25 @@ data class ComicInfo(
             primary.isNotBlank() -> primary
             authors.isNotBlank() -> authors
             else -> emptyFallback
+        }
+    }
+
+    /**
+     * Resolves the (headline, subline) pair for a library CBZ card:
+     * - When sufficient metadata exists ((Series + Number) or Title):
+     *   headline = metadata line, subline = [displayName]
+     * - Otherwise (including author-only, series-without-number, or empty):
+     *   headline = [displayName], subline = metadata line (or [emptyFallback])
+     */
+    fun formatLibraryCardLines(
+        displayName: String,
+        emptyFallback: String = "메타데이터 없음",
+    ): Pair<String, String> {
+        val metaLine = formatLibraryMetaLine(emptyFallback)
+        return if (hasLibraryHeadlineMeta()) {
+            metaLine to displayName
+        } else {
+            displayName to metaLine
         }
     }
 

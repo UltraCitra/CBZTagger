@@ -464,9 +464,13 @@ private fun CbzItemCard(
                 }
             }
             Spacer(Modifier.width(12.dp))
+            val (headlineText, sublineText) = item.comicInfo.formatLibraryCardLines(
+                displayName = item.displayName,
+                emptyFallback = stringResource(R.string.no_metadata),
+            )
             Column(modifier = Modifier.weight(1f)) {
                 Text(
-                    text = item.displayName,
+                    text = headlineText,
                     style = MaterialTheme.typography.titleSmall,
                     fontWeight = FontWeight.SemiBold,
                     maxLines = 2,
@@ -474,7 +478,7 @@ private fun CbzItemCard(
                 )
                 Spacer(Modifier.height(2.dp))
                 Text(
-                    text = item.comicInfo.formatLibraryMetaLine(emptyFallback = stringResource(R.string.no_metadata)),
+                    text = sublineText,
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                     maxLines = 1,
