@@ -104,23 +104,25 @@ dependencies {
 
 val apkAppName = "CBZTagger"
 val apkVersionName = android.defaultConfig.versionName ?: "0.0.0"
-val distCbzTaggerDir = rootProject.layout.projectDirectory.dir("dist")
+val distDir = rootProject.layout.projectDirectory.dir("dist")
 
 fun registerExportApkTask(taskName: String, buildType: String) =
     tasks.register(taskName, Copy::class) {
         val targetFileName = "${apkAppName}_${apkVersionName}_${buildType}.apk"
+        val appPrefix = "${apkAppName}_"
         val currentVersionPrefix = "${apkAppName}_${apkVersionName}_"
-        val destDir = distCbzTaggerDir.asFile
+        val destDir = distDir.asFile
 
         outputs.upToDateWhen { false }
         from(layout.buildDirectory.file("outputs/apk/$buildType/app-$buildType.apk"))
-        into(distCbzTaggerDir)
+        into(distDir)
         rename { targetFileName }
         doFirst {
             destDir.listFiles()
                 ?.filter { file ->
                     file.isFile &&
                         file.extension.equals("apk", ignoreCase = true) &&
+                        file.name.startsWith(appPrefix) &&
                         (!file.name.startsWith(currentVersionPrefix) || file.name == targetFileName)
                 }
                 ?.forEach { it.delete() }
