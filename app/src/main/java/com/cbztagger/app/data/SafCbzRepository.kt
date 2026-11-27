@@ -6,7 +6,9 @@ import android.graphics.BitmapFactory
 import android.net.Uri
 import android.provider.DocumentsContract
 import android.provider.OpenableColumns
+import androidx.annotation.StringRes
 import androidx.documentfile.provider.DocumentFile
+import com.cbztagger.app.R
 import com.cbztagger.app.core.CbzArchive
 import com.cbztagger.app.core.CbzSummary
 import com.cbztagger.app.core.CbzWriteResult
@@ -53,6 +55,9 @@ private data class SafChildDoc(
 }
 
 class SafCbzRepository(private val context: Context) {
+    private fun str(@StringRes resId: Int, vararg args: Any): String =
+        AppLocaleHelper.wrapContext(context).getString(resId, *args)
+
     private val sessionMutex = Mutex()
     @Volatile
     private var editorSessionUri: Uri? = null
@@ -71,7 +76,7 @@ class SafCbzRepository(private val context: Context) {
         val tempFile = File.createTempFile("editor_session_", ".cbz", context.cacheDir)
         try {
             val input = context.contentResolver.openInputStream(uri)
-                ?: throw IllegalStateException("파일을 열 수 없습니다: $uri")
+                ?: throw IllegalStateException(str(R.string.err_cannot_open_file, uri.toString()))
             input.use { src ->
                 FileOutputStream(tempFile).use { dst ->
                     src.copyTo(dst, bufferSize = 64 * 1024)
@@ -122,7 +127,7 @@ class SafCbzRepository(private val context: Context) {
             val treeDocId = DocumentsContract.getTreeDocumentId(treeUri)
             treeDocId.substringAfter(':').ifBlank { treeDocId }
         }.getOrElse {
-            treeUri.lastPathSegment?.substringAfterLast('/') ?: "선택된 폴더"
+            treeUri.lastPathSegment?.substringAfterLast('/') ?: str(R.string.selected_folder_fallback)
         }
     }
 
@@ -222,7 +227,7 @@ class SafCbzRepository(private val context: Context) {
         val children = queryChildren(sourceTreeUri, candidate.folderDocId).filterNot { it.isDirectory }
         val plannedImages = ExternalFolderImporter.planImageEntries(children) { it.name }
         if (plannedImages.isEmpty()) {
-            throw IllegalStateException("'${candidate.folderName}' 폴더에 불러올 이미지가 없습니다.")
+            throw IllegalStateException(str(R.string.err_no_images_in_folder, candidate.folderName))
         }
 
         val existingXmlDoc = children.firstOrNull { ExternalFolderImporter.isComicInfoFilename(it.name) }
@@ -246,7 +251,7 @@ class SafCbzRepository(private val context: Context) {
                 openStream = { childDoc ->
                     val fileUri = DocumentsContract.buildDocumentUriUsingTree(sourceTreeUri, childDoc.docId)
                     context.contentResolver.openInputStream(fileUri)
-                        ?: throw IllegalStateException("이미지 파일을 읽을 수 없습니다: ${childDoc.name}")
+                        ?: throw IllegalStateException(str(R.string.err_cannot_read_image, childDoc.name))
                 },
                 onProgress = onProgress,
             )
@@ -443,7 +448,7 @@ class SafCbzRepository(private val context: Context) {
                 "application/octet-stream",
                 targetFileName,
             )
-            ?: throw IllegalStateException("대상 폴더에 CBZ 파일을 생성할 수 없습니다: $targetFileName")
+            ?: throw IllegalStateException(str(R.string.err_cannot_create_cbz, targetFileName))
 
         val actualName = resolveDisplayName(created)
         if (!actualName.equals(targetFileName, ignoreCase = true) && !actualName.lowercase(Locale.US).endsWith(".cbz")) {
@@ -478,7 +483,7 @@ class SafCbzRepository(private val context: Context) {
         val tempFile = File.createTempFile("saf_work_", ".cbz", context.cacheDir)
         try {
             val input = context.contentResolver.openInputStream(uri)
-                ?: throw IllegalStateException("파일을 열 수 없습니다: $uri")
+                ?: throw IllegalStateException(str(R.string.err_cannot_open_file, uri.toString()))
             input.use { src ->
                 FileOutputStream(tempFile).use { dst ->
                     src.copyTo(dst, bufferSize = 64 * 1024)
@@ -493,7 +498,7 @@ class SafCbzRepository(private val context: Context) {
     private fun writeBackToUri(sourceFile: File, targetUri: Uri) {
         val output = context.contentResolver.openOutputStream(targetUri, "wt")
             ?: context.contentResolver.openOutputStream(targetUri, "w")
-            ?: throw IllegalStateException("파일에 쓸 권한이 없습니다: $targetUri")
+            ?: throw IllegalStateException(str(R.string.err_no_write_permission, targetUri.toString()))
         output.use { dst ->
             FileInputStream(sourceFile).use { src ->
                 src.copyTo(dst, bufferSize = 64 * 1024)

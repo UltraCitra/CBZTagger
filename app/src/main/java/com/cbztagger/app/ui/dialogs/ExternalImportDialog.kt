@@ -30,9 +30,11 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import com.cbztagger.app.R
 import com.cbztagger.app.core.ExternalFolderImporter
 import com.cbztagger.app.data.ExternalFolderCandidate
 import com.cbztagger.app.ui.ExternalImportUiState
@@ -63,7 +65,7 @@ fun ExternalImportDialog(
 
     AlertDialog(
         onDismissRequest = onDismiss,
-        title = { Text("외부 파일 불러오기") },
+        title = { Text(stringResource(R.string.import_title)) },
         text = {
             Column(
                 modifier = Modifier.fillMaxWidth(),
@@ -85,7 +87,7 @@ fun ExternalImportDialog(
                         ) {
                             Column(modifier = Modifier.weight(1f)) {
                                 Text(
-                                    text = "외부 경로 (원본)",
+                                    text = stringResource(R.string.import_source_label),
                                     style = MaterialTheme.typography.labelSmall,
                                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                                 )
@@ -98,7 +100,7 @@ fun ExternalImportDialog(
                                 )
                             }
                             TextButton(onClick = onChangeSourceFolder) {
-                                Text("변경")
+                                Text(stringResource(R.string.action_change))
                             }
                         }
 
@@ -111,13 +113,13 @@ fun ExternalImportDialog(
                         ) {
                             Column(modifier = Modifier.weight(1f)) {
                                 Text(
-                                    text = "CBZ 저장 폴더",
+                                    text = stringResource(R.string.import_dest_label),
                                     style = MaterialTheme.typography.labelSmall,
                                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                                 )
                                 Text(
                                     text = if (importState.isDestSameAsSource) {
-                                        "${importState.destFolderName} (외부 경로와 동일)"
+                                        stringResource(R.string.import_dest_same, importState.destFolderName)
                                     } else {
                                         importState.destFolderName
                                     },
@@ -128,12 +130,12 @@ fun ExternalImportDialog(
                                 )
                             }
                             TextButton(onClick = onChangeDestFolder) {
-                                Text("변경")
+                                Text(stringResource(R.string.action_change))
                             }
                         }
 
                         Text(
-                            text = "무압축 보관(Store) · 원본 이미지 파일명 유지",
+                            text = stringResource(R.string.import_info_banner),
                             style = MaterialTheme.typography.labelSmall,
                             color = MaterialTheme.colorScheme.primary,
                         )
@@ -149,7 +151,7 @@ fun ExternalImportDialog(
                 ) {
                     AssistChip(
                         onClick = { selectedFolderNames = importState.candidates.map { it.folderName }.toSet() },
-                        label = { Text("전체 (${importState.candidates.size})") },
+                        label = { Text(stringResource(R.string.import_chip_all, importState.candidates.size)) },
                     )
                     val newOnlyCount = importState.candidates.count { it.folderName !in importState.alreadyImportedNames }
                     AssistChip(
@@ -159,11 +161,11 @@ fun ExternalImportDialog(
                                 .map { it.folderName }
                                 .toSet()
                         },
-                        label = { Text("신규만 ($newOnlyCount)") },
+                        label = { Text(stringResource(R.string.import_chip_new, newOnlyCount)) },
                     )
                     AssistChip(
                         onClick = { selectedFolderNames = emptySet() },
-                        label = { Text("해제") },
+                        label = { Text(stringResource(R.string.action_clear)) },
                     )
                 }
 
@@ -211,7 +213,12 @@ fun ExternalImportDialog(
                                     overflow = TextOverflow.Ellipsis,
                                 )
                                 Text(
-                                    text = "→ $cbzName · 이미지 ${candidate.imageCount}장 · ${MainViewModel.formatBytes(candidate.totalSizeBytes)}",
+                                    text = stringResource(
+                                        R.string.import_item_summary,
+                                        cbzName,
+                                        candidate.imageCount,
+                                        MainViewModel.formatBytes(candidate.totalSizeBytes),
+                                    ),
                                     style = MaterialTheme.typography.labelSmall,
                                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                                     maxLines = 1,
@@ -221,10 +228,10 @@ fun ExternalImportDialog(
                                     Spacer(Modifier.height(2.dp))
                                     Row(horizontalArrangement = Arrangement.spacedBy(4.dp)) {
                                         if (isImported) {
-                                            ImportTagBadge("이미 불러옴", highlighted = false)
+                                            ImportTagBadge(stringResource(R.string.import_badge_imported), highlighted = false)
                                         }
                                         if (candidate.hasExistingXml) {
-                                            ImportTagBadge("기존 XML 있음", highlighted = true)
+                                            ImportTagBadge(stringResource(R.string.import_badge_xml), highlighted = true)
                                         }
                                     }
                                 }
@@ -247,7 +254,7 @@ fun ExternalImportDialog(
                         )
                         Spacer(Modifier.width(4.dp))
                         Text(
-                            text = "불러오기 완료 후 원본 폴더 삭제",
+                            text = stringResource(R.string.import_delete_source_checkbox),
                             style = MaterialTheme.typography.bodySmall,
                         )
                     }
@@ -259,12 +266,12 @@ fun ExternalImportDialog(
                 onClick = { onConfirm(selectedCandidates, deleteSourceAfterImport && canDeleteAnySource) },
                 enabled = selectedCandidates.isNotEmpty(),
             ) {
-                Text("불러오기 (${selectedCandidates.size}개)")
+                Text(stringResource(R.string.import_confirm_button, selectedCandidates.size))
             }
         },
         dismissButton = {
             TextButton(onClick = onDismiss) {
-                Text("취소")
+                Text(stringResource(R.string.action_cancel))
             }
         },
     )

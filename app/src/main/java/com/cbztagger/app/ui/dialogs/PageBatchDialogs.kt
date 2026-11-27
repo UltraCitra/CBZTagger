@@ -45,11 +45,13 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
+import com.cbztagger.app.R
 import com.cbztagger.app.core.BookmarkRowDraft
 import com.cbztagger.app.core.PageBatchHelper
 import com.cbztagger.app.core.PageInfo
@@ -73,11 +75,11 @@ fun PageRangeSelectDialog(
 
     AlertDialog(
         onDismissRequest = onDismiss,
-        title = { Text("페이지 범위 선택") },
+        title = { Text(stringResource(R.string.page_range_title)) },
         text = {
             Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
                 Text(
-                    text = "선택할 시작~끝 페이지 번호를 입력하세요 (1 ~ ${pageCount}p).",
+                    text = stringResource(R.string.page_range_desc, pageCount),
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
@@ -89,7 +91,7 @@ fun PageRangeSelectDialog(
                     OutlinedTextField(
                         value = startText,
                         onValueChange = { startText = it.filter(Char::isDigit).take(5) },
-                        label = { Text("시작") },
+                        label = { Text(stringResource(R.string.page_range_start)) },
                         singleLine = true,
                         keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
                         isError = startText.isNotEmpty() && (startNum == null || startNum !in 1..pageCount),
@@ -99,7 +101,7 @@ fun PageRangeSelectDialog(
                     OutlinedTextField(
                         value = endText,
                         onValueChange = { endText = it.filter(Char::isDigit).take(5) },
-                        label = { Text("끝") },
+                        label = { Text(stringResource(R.string.page_range_end)) },
                         singleLine = true,
                         keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
                         isError = endText.isNotEmpty() && (endNum == null || endNum !in 1..pageCount),
@@ -117,12 +119,12 @@ fun PageRangeSelectDialog(
                 },
                 enabled = isValid,
             ) {
-                Text("선택")
+                Text(stringResource(R.string.action_select))
             }
         },
         dismissButton = {
             TextButton(onClick = onDismiss) {
-                Text("취소")
+                Text(stringResource(R.string.action_cancel))
             }
         },
     )
@@ -207,7 +209,7 @@ fun BatchBookmarkDialog(
             ) {
                 Column(modifier = Modifier.fillMaxWidth()) {
                     Text(
-                        text = "북마크 지정 (1 ~ ${pageCount}p)",
+                        text = stringResource(R.string.batch_bookmark_title, pageCount),
                         style = MaterialTheme.typography.titleMedium,
                         fontWeight = FontWeight.SemiBold,
                         modifier = Modifier.padding(horizontal = 20.dp, vertical = 12.dp),
@@ -226,7 +228,7 @@ fun BatchBookmarkDialog(
                         if (rows.isEmpty()) {
                             item(key = "empty_hint") {
                                 Text(
-                                    text = "지정된 북마크가 없습니다. 아래 + 버튼으로 북마크를 추가하세요.",
+                                    text = stringResource(R.string.batch_bookmark_empty),
                                     style = MaterialTheme.typography.bodySmall,
                                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                                     modifier = Modifier.padding(vertical = 8.dp),
@@ -267,7 +269,7 @@ fun BatchBookmarkDialog(
                                             rows[index] = rows[index].copy(name = text)
                                         }
                                     },
-                                    placeholder = { Text("북마크 이름") },
+                                    placeholder = { Text(stringResource(R.string.pages_bookmark_name_label)) },
                                     singleLine = true,
                                     modifier = Modifier.weight(1f),
                                 )
@@ -281,7 +283,7 @@ fun BatchBookmarkDialog(
                                 ) {
                                     Icon(
                                         imageVector = Icons.Default.Remove,
-                                        contentDescription = "북마크 삭제",
+                                        contentDescription = stringResource(R.string.batch_bookmark_cd_remove),
                                         tint = MaterialTheme.colorScheme.error,
                                     )
                                 }
@@ -299,7 +301,7 @@ fun BatchBookmarkDialog(
                     ) {
                         if (hasInvalidPage) {
                             Text(
-                                text = "페이지 번호는 1 ~ $pageCount 사이여야 합니다.",
+                                text = stringResource(R.string.batch_bookmark_invalid_page, pageCount),
                                 style = MaterialTheme.typography.labelSmall,
                                 color = MaterialTheme.colorScheme.error,
                             )
@@ -325,11 +327,11 @@ fun BatchBookmarkDialog(
                                 ) {
                                     Icon(
                                         imageVector = Icons.Default.Add,
-                                        contentDescription = "북마크 추가",
+                                        contentDescription = stringResource(R.string.batch_bookmark_cd_add),
                                         modifier = Modifier.size(18.dp),
                                     )
                                     Spacer(Modifier.width(4.dp))
-                                    Text("추가")
+                                    Text(stringResource(R.string.action_add))
                                 }
                             } else {
                                 Spacer(Modifier.width(1.dp))
@@ -337,7 +339,7 @@ fun BatchBookmarkDialog(
 
                             Row(verticalAlignment = Alignment.CenterVertically) {
                                 TextButton(onClick = onDismiss) {
-                                    Text("취소")
+                                    Text(stringResource(R.string.action_cancel))
                                 }
                                 Spacer(Modifier.width(4.dp))
                                 Button(
@@ -355,7 +357,7 @@ fun BatchBookmarkDialog(
                                     },
                                     enabled = !hasInvalidPage,
                                 ) {
-                                    Text("저장")
+                                    Text(stringResource(R.string.action_save))
                                 }
                             }
                         }

@@ -126,14 +126,14 @@ data class ComicInfo(
      * Single inline library metadata line with unified style:
      * "{series} #{issue} | {penciller}" (or "{title} | {penciller} | {writer}" when different).
      */
-    fun formatLibraryMetaLine(): String {
+    fun formatLibraryMetaLine(emptyFallback: String = "메타데이터 없음"): String {
         val primary = formatLibraryPrimaryMeta()
         val authors = formatAuthorsDisplay()
         return when {
             primary.isNotBlank() && authors.isNotBlank() -> "$primary | $authors"
             primary.isNotBlank() -> primary
             authors.isNotBlank() -> authors
-            else -> "메타데이터 없음"
+            else -> emptyFallback
         }
     }
 

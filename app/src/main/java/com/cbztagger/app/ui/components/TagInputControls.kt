@@ -29,8 +29,10 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import com.cbztagger.app.R
 
 /**
  * Dropdown selector for ComicInfo `<Manga>` tag with full XML tag names and explanations
@@ -41,25 +43,29 @@ fun MangaSelectorRow(
     manga: String,
     onMangaChange: (String) -> Unit,
     modifier: Modifier = Modifier,
-    emptyLabel: String = "지정 안 함",
+    emptyLabel: String? = null,
 ) {
-    val options = remember(emptyLabel) {
+    val resolvedEmpty = emptyLabel ?: stringResource(R.string.manga_option_none)
+    val optYes = stringResource(R.string.manga_option_yes)
+    val optRtl = stringResource(R.string.manga_option_rtl)
+    val optNo = stringResource(R.string.manga_option_no)
+    val options = remember(resolvedEmpty, optYes, optRtl, optNo) {
         listOf(
-            "" to emptyLabel,
-            "Yes" to "Yes (망가)",
-            "YesAndRightToLeft" to "YesAndRightToLeft (망가 · 우→좌)",
-            "No" to "No (일반 · 좌→우)",
+            "" to resolvedEmpty,
+            "Yes" to optYes,
+            "YesAndRightToLeft" to optRtl,
+            "No" to optNo,
         )
     }
     var expanded by remember { mutableStateOf(false) }
     val currentLabel = options.firstOrNull { it.first.equals(manga, ignoreCase = true) }?.second
-        ?: manga.ifBlank { emptyLabel }
+        ?: manga.ifBlank { resolvedEmpty }
 
     Column(
         modifier = modifier.fillMaxWidth(),
         verticalArrangement = Arrangement.spacedBy(4.dp),
     ) {
-        Text("읽기 방향 (Manga)", style = MaterialTheme.typography.bodyMedium)
+        Text(stringResource(R.string.manga_selector_label), style = MaterialTheme.typography.bodyMedium)
         Box(modifier = Modifier.fillMaxWidth()) {
             OutlinedButton(
                 onClick = { expanded = true },
@@ -140,7 +146,11 @@ fun AuthorCreditInput(
                     }
                 },
                 label = {
-                    Text(if (separateAuthors) "그림작가 (Penciller)" else "작가 (그림·글)")
+                    Text(
+                        stringResource(
+                            if (separateAuthors) R.string.author_penciller_label else R.string.author_combined_label,
+                        ),
+                    )
                 },
                 singleLine = true,
                 modifier = Modifier.weight(1f),
@@ -156,7 +166,7 @@ fun AuthorCreditInput(
                     onCheckedChange = { checked -> setSeparate(checked) },
                 )
                 Text(
-                    text = "그림·글 다름",
+                    text = stringResource(R.string.author_split_label),
                     style = MaterialTheme.typography.labelSmall,
                     maxLines = 1,
                 )
@@ -171,7 +181,7 @@ fun AuthorCreditInput(
             OutlinedTextField(
                 value = writer,
                 onValueChange = { v -> onChange(v, penciller) },
-                label = { Text("글작가 (Writer)") },
+                label = { Text(stringResource(R.string.author_writer_label)) },
                 singleLine = true,
                 modifier = Modifier
                     .fillMaxWidth()

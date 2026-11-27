@@ -1,0 +1,309 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">CBZTagger</string>
+
+    <!-- Common -->
+    <string name="action_back">뒤로</string>
+    <string name="action_close">닫기</string>
+    <string name="action_cancel">취소</string>
+    <string name="action_save">저장</string>
+    <string name="action_delete">삭제</string>
+    <string name="action_change">변경</string>
+    <string name="action_done">완료</string>
+    <string name="action_add">추가</string>
+    <string name="action_select">선택</string>
+    <string name="action_reset">초기화</string>
+    <string name="action_clear">해제</string>
+    <string name="action_select_all">전체 선택</string>
+    <string name="action_deselect_all">전체 해제</string>
+    <string name="action_exit">종료</string>
+    <string name="action_apply">일괄 적용</string>
+    <string name="action_rename">이름 변경</string>
+
+    <!-- MainActivity dialogs -->
+    <string name="unsaved_changes_title">저장되지 않은 변경사항</string>
+    <string name="unsaved_changes_message">편집한 메타데이터가 아직 저장되지 않았습니다. 저장하고 나가시겠습니까?</string>
+    <string name="unsaved_save_and_leave">저장 후 나가기</string>
+    <string name="unsaved_discard_and_leave">저장하지 않고 나가기</string>
+    <string name="unsaved_keep_editing">계속 편집</string>
+    <string name="exit_app_title">앱 종료</string>
+    <string name="exit_app_message">%1$s를 종료하시겠습니까?</string>
+
+    <!-- LibraryScreen -->
+    <string name="library_selected_count">%1$d개 선택됨</string>
+    <string name="library_default_compression">기본 압축: %1$s</string>
+    <string name="library_cd_open_folder">폴더 열기</string>
+    <string name="library_cd_add_files">CBZ 파일 추가</string>
+    <string name="library_cd_import_external">외부 파일 불러오기</string>
+    <string name="library_cd_settings">설정</string>
+    <string name="library_nav_batch_compress">일괄 압축</string>
+    <string name="library_nav_batch_tags">일괄 태그</string>
+    <string name="library_nav_batch_parse">파일명 파싱</string>
+    <string name="library_nav_batch_rename">일괄 리네임</string>
+    <string name="library_empty_title">오프라인 CBZ 태그 &amp; 압축 도구</string>
+    <string name="library_empty_desc">폴더 또는 CBZ 파일을 열어 ComicInfo.xml 태그를 편집하고 ZIP 압축 단계(0~9)를 조절하세요.</string>
+    <string name="library_btn_open_folder">CBZ 폴더 열기</string>
+    <string name="library_btn_pick_files">CBZ 파일 선택</string>
+    <string name="library_btn_import_external">외부 폴더에서 CBZ 불러오기</string>
+    <string name="library_no_tags">태그 없음</string>
+    <string name="no_metadata">메타데이터 없음</string>
+
+    <!-- Batch dialogs in LibraryScreen -->
+    <string name="batch_compress_title">일괄 ZIP 압축 변환 (%1$d개)</string>
+    <string name="batch_compress_desc">선택한 CBZ 파일의 모든 이미지를 지정한 ZIP 압축 단계(0~9)로 다시 압축합니다.</string>
+    <string name="batch_compress_confirm">변환 시작</string>
+
+    <string name="batch_tags_title">일괄 태그 편집 (%1$d개)</string>
+    <string name="batch_tags_desc">입력한 항목만 일괄 덮어쓰기 됩니다. 비워둔 항목은 각 파일의 기존 태그를 유지합니다.</string>
+    <string name="batch_tags_year_label">발행 연도 (Year)</string>
+    <string name="batch_tags_lang_label">언어 코드 (예: ko, en, ja)</string>
+    <string name="batch_tags_keep_unchanged">변경 안 함</string>
+    <string name="batch_tags_confirm">일괄 적용</string>
+
+    <string name="batch_parse_title">일괄 파일명 파싱 (%1$d개)</string>
+    <string name="batch_parse_desc">각 CBZ 파일명에서 시리즈, 권수/이슈, 볼륨, 연도를 자동 추출하여 ComicInfo.xml에 저장합니다.</string>
+    <string name="batch_parse_overwrite">기존 태그 값 덮어쓰기</string>
+    <string name="batch_parse_confirm">파싱 및 저장</string>
+
+    <string name="batch_rename_title">일괄 파일명 변경 (%1$d개)</string>
+    <string name="batch_rename_template_label">템플릿 ({series}, {issue}, {volume}, {year}, {title})</string>
+    <string name="batch_rename_padding_label">0-패딩 자릿수</string>
+    <string name="batch_rename_smart_cleanup">빈 괄호 정리</string>
+    <string name="batch_rename_oneshot_title">시리즈 없음(단권) 시 {title}을 파일명으로 사용</string>
+    <string name="batch_rename_preview_header">미리보기 (최대 5개)</string>
+    <string name="batch_rename_preview_collapse">미리보기 접기</string>
+    <string name="batch_rename_preview_expand">미리보기 펼치기</string>
+    <string name="batch_rename_skipped_no_tags">(태그 없음 - 건너뜀)</string>
+
+    <!-- EditorScreen -->
+    <string name="editor_cd_parse_filename">파일명에서 태그 추출</string>
+    <string name="editor_cd_rename_file">파일 이름 변경</string>
+    <string name="editor_cd_delete_tags">태그 삭제</string>
+    <string name="editor_save_keep">태그 저장 (기존 유지)</string>
+    <string name="editor_save_level">태그 저장 (압축 %1$d)</string>
+    <string name="editor_tab_basic">기본 정보</string>
+    <string name="editor_tab_details">상세 · 크레딧</string>
+    <string name="editor_tab_pages">페이지 (%1$d)</string>
+    <string name="editor_delete_confirm_title">ComicInfo.xml 삭제</string>
+    <string name="editor_delete_confirm_message">이 CBZ 파일에서 ComicInfo.xml 태그를 삭제하시겠습니까?</string>
+    <string name="editor_rename_title">파일 이름 변경</string>
+    <string name="editor_rename_current">현재: %1$s</string>
+    <string name="editor_rename_new_label">새 파일명 (.cbz)</string>
+    <string name="editor_cd_cover">표지</string>
+    <string name="editor_field_series">시리즈 (Series)</string>
+    <string name="editor_btn_auto_fill">파일명에서 자동 채우기</string>
+    <string name="editor_field_number">번호 (Number)</string>
+    <string name="editor_field_count">전체 (Count)</string>
+    <string name="editor_field_volume">볼륨 (Volume)</string>
+    <string name="editor_field_title">제목 (Title)</string>
+    <string name="editor_btn_series_number">시리즈+번호</string>
+    <string name="editor_field_publisher">출판사 (Publisher)</string>
+    <string name="editor_field_imprint">임프린트 (Imprint)</string>
+    <string name="editor_field_year">연도</string>
+    <string name="editor_field_month">월</string>
+    <string name="editor_field_day">일</string>
+    <string name="editor_field_genre">장르 (쉼표 구분)</string>
+    <string name="editor_field_genre_short">장르 (Genre)</string>
+    <string name="editor_field_language">언어 (ko/en/ja)</string>
+    <string name="editor_field_bw">흑백 만화 (BlackAndWhite)</string>
+    <string name="editor_field_summary">줄거리 (Summary)</string>
+    <string name="editor_field_notes">메모 (Notes)</string>
+    <string name="editor_section_credits">제작진 (크레딧)</string>
+    <string name="editor_field_inker">잉커 (Inker)</string>
+    <string name="editor_field_colorist">채색 (Colorist)</string>
+    <string name="editor_field_letterer">식자 (Letterer)</string>
+    <string name="editor_field_cover_artist">표지작가 (CoverArtist)</string>
+    <string name="editor_field_editor">편집자 (Editor)</string>
+    <string name="editor_section_extra">추가 분류 정보</string>
+    <string name="editor_field_story_arc">스토리 아크 (StoryArc)</string>
+    <string name="editor_field_series_group">시리즈 그룹 (SeriesGroup)</string>
+    <string name="editor_field_characters">등장인물 (Characters)</string>
+    <string name="editor_field_teams">팀 (Teams)</string>
+    <string name="editor_field_locations">장소 (Locations)</string>
+    <string name="editor_field_age_rating">연령 등급</string>
+    <string name="editor_field_format">포맷 (TPB 등)</string>
+    <string name="editor_field_scan_info">스캔 정보 (ScanInformation)</string>
+    <string name="editor_field_web">웹 링크 (Web)</string>
+
+    <!-- EditorScreen PagesTab & Preview -->
+    <string name="pages_empty">페이지 목록을 불러오는 중이거나 이미지가 없습니다.</string>
+    <string name="pages_btn_batch_edit">일괄 속성 편집</string>
+    <string name="pages_btn_bookmarks">북마크 지정</string>
+    <string name="pages_batch_header">일괄 속성 편집 (%1$d/%2$d 선택)</string>
+    <string name="pages_chip_range">범위 선택 (시작~끝)</string>
+    <string name="pages_chip_fill_story">빈 페이지 일괄 Story (%1$d)</string>
+    <string name="pages_btn_apply_type">선택한 %1$d페이지에 속성 일괄 적용</string>
+    <string name="pages_type_clear">일반 (속성 초기화)</string>
+    <string name="pages_type_none">일반 (지정 안 함)</string>
+    <string name="pages_type_normal">일반</string>
+    <string name="pages_double_set_batch">양면(DoublePage) 일괄 설정</string>
+    <string name="pages_double_clear_batch">양면(DoublePage) 일괄 해제</string>
+    <string name="pages_double_set">양면(DoublePage) 설정</string>
+    <string name="pages_double_clear">양면 해제</string>
+    <string name="pages_double_label">양면 페이지</string>
+    <string name="pages_double_short">양면</string>
+    <string name="pages_cd_bookmark">북마크</string>
+    <string name="pages_subtitle_tap_select">탭하여 선택</string>
+    <string name="pages_subtitle_hint">탭하여 미리보기 · 길게 눌러 북마크 편집</string>
+    <string name="pages_bookmark_dialog_title">페이지 #%1$d 북마크</string>
+    <string name="pages_bookmark_name_label">북마크 이름</string>
+    <string name="pages_bookmark_name_placeholder">예: 1화, 목차, 챕터 시작</string>
+    <string name="pages_bookmark_delete">북마크 삭제</string>
+    <string name="preview_bookmark_prefix">북마크: %1$s</string>
+    <string name="preview_direction_rtl">← 다음 · 우→좌 (Manga) · 이전 →</string>
+    <string name="preview_direction_ltr">← 이전 · 좌→우 · 다음 →</string>
+    <string name="preview_cd_next">다음 페이지</string>
+    <string name="preview_cd_prev">이전 페이지</string>
+    <string name="preview_load_failed">이미지를 표시할 수 없습니다.</string>
+
+    <!-- PageBatchDialogs -->
+    <string name="page_range_title">페이지 범위 선택</string>
+    <string name="page_range_desc">선택할 시작~끝 페이지 번호를 입력하세요 (1 ~ %1$dp).</string>
+    <string name="page_range_start">시작</string>
+    <string name="page_range_end">끝</string>
+    <string name="batch_bookmark_title">북마크 지정 (1 ~ %1$dp)</string>
+    <string name="batch_bookmark_empty">지정된 북마크가 없습니다. 아래 + 버튼으로 북마크를 추가하세요.</string>
+    <string name="batch_bookmark_invalid_page">페이지 번호는 1 ~ %1$d 사이여야 합니다.</string>
+    <string name="batch_bookmark_cd_add">북마크 추가</string>
+    <string name="batch_bookmark_cd_remove">북마크 삭제</string>
+
+    <!-- ExternalImportDialog -->
+    <string name="import_title">외부 파일 불러오기</string>
+    <string name="import_source_label">외부 경로 (원본)</string>
+    <string name="import_dest_label">CBZ 저장 폴더</string>
+    <string name="import_dest_same">%1$s (외부 경로와 동일)</string>
+    <string name="import_info_banner">무압축 보관(Store) · 원본 이미지 파일명 유지</string>
+    <string name="import_chip_all">전체 (%1$d)</string>
+    <string name="import_chip_new">신규만 (%1$d)</string>
+    <string name="import_item_summary">→ %1$s · 이미지 %2$d장 · %3$s</string>
+    <string name="import_badge_imported">이미 불러옴</string>
+    <string name="import_badge_xml">기존 XML 있음</string>
+    <string name="import_delete_source_checkbox">불러오기 완료 후 원본 폴더 삭제</string>
+    <string name="import_confirm_button">불러오기 (%1$d개)</string>
+
+    <!-- TagInputControls -->
+    <string name="manga_selector_label">읽기 방향 (Manga)</string>
+    <string name="manga_option_none">지정 안 함</string>
+    <string name="manga_option_yes">Yes (망가)</string>
+    <string name="manga_option_rtl">YesAndRightToLeft (망가 · 우→좌)</string>
+    <string name="manga_option_no">No (일반 · 좌→우)</string>
+    <string name="author_combined_label">작가 (그림·글)</string>
+    <string name="author_split_label">그림·글 다름</string>
+    <string name="author_penciller_label">그림작가 (Penciller)</string>
+    <string name="author_writer_label">글작가 (Writer)</string>
+
+    <!-- CompressionControls -->
+    <string name="zip_section_label">ZIP 압축</string>
+    <string name="zip_level_value">압축 단계: %1$d</string>
+    <string name="zip_mode_keep">기존 유지</string>
+    <string name="zip_mode_compress">압축</string>
+    <string name="zip_keep_desc">기존 이미지의 압축 방식을 그대로 유지하고 ComicInfo.xml 태그만 빠르게 갱신합니다.</string>
+    <string name="zip_slider_desc">0은 무압축(Store)으로 로딩이 가장 빠르며, 1~9는 Deflate 압축으로 단계가 높을수록 압축률이 높아져 용량이 줄어드는 대신 저장 시간이 길어집니다. (기본 권장: 6)</string>
+
+    <!-- SettingsScreen -->
+    <string name="settings_title">설정</string>
+    <string name="settings_zip_title">기본 ZIP 압축 단계 (태그 저장 시)</string>
+    <string name="settings_zip_desc">태그를 저장할 때 적용할 기본 ZIP 압축 옵션입니다. 설정은 앱을 종료해도 자동으로 유지됩니다.</string>
+    <string name="settings_external_title">외부 파일 불러오기 경로</string>
+    <string name="settings_external_desc">설정된 경로/폴더명/이미지 파일들 구조의 폴더를 폴더명.cbz(무압축 보관)로 불러옵니다.</string>
+    <string name="settings_external_current">현재 경로: %1$s</string>
+    <string name="settings_external_unset">설정되지 않음</string>
+    <string name="settings_external_pick">경로 선택</string>
+    <string name="settings_external_change">경로 변경</string>
+    <string name="settings_external_delete_title">외부파일을 성공적으로 불러온 후 원본파일을 삭제합니다</string>
+    <string name="settings_external_delete_desc">불러오기에 성공한 원본 폴더만 삭제하며, 실패한 항목은 유지합니다.</string>
+    <string name="settings_pages_title">페이지 목록 및 미리보기 설정</string>
+    <string name="settings_thumbnails_title">페이지 목록에서 이미지 보이기</string>
+    <string name="settings_thumbnails_desc">메타데이터 편집 &gt; 페이지 탭 목록에 썸네일을 표시합니다. (캐시되지 않음)</string>
+    <string name="settings_manga_dir_title">미리보기 이동 시 Manga 태그 방향 따르기</string>
+    <string name="settings_manga_dir_desc">켜면 Manga 태그가 Yes / YesAndRightToLeft일 때 우→좌(오른쪽에서 왼쪽)로 넘깁니다. 끄면 항상 좌→우로 이동합니다.</string>
+    <string name="settings_rename_title">파일명 변경 (Rename) 기본 설정</string>
+    <string name="settings_rename_template_label">기본 템플릿</string>
+    <string name="settings_rename_template_help">사용 가능: {series}, {issue}, {volume}, {year}, {title}, {publisher}</string>
+    <string name="settings_rename_padding_label">권수 0-패딩</string>
+    <string name="settings_rename_cleanup">빈 괄호·공백 자동 정리</string>
+    <string name="settings_language_title">언어 (Language)</string>
+    <string name="settings_language_desc">앱 표시 언어를 선택합니다.</string>
+    <string name="settings_language_system">시스템 기본</string>
+    <string name="settings_about_title">앱 정보</string>
+    <string name="settings_license_cd">MIT 라이선스 보기</string>
+    <string name="settings_about_desc">만화 CBZ 파일의 메타데이터(ComicInfo.xml)를 오프라인에서 간편하게 편집하고 관리하는 앱입니다.\n• 인터넷 연결 없이 기기 내에서만 안전하게 동작\n• 태그·페이지 속성·북마크 편집 및 미리보기 지원\n• 외부 이미지 폴더를 CBZ로 묶어 불러오기\n• ZIP 압축 단계 설정 및 일괄 태그·리네임·재압축 지원</string>
+
+    <!-- Core enum / summary labels -->
+    <string name="page_type_front_cover">앞표지 (FrontCover)</string>
+    <string name="page_type_inner_cover">속표지 (InnerCover)</string>
+    <string name="page_type_roundup">요약 (Roundup)</string>
+    <string name="page_type_story">본문 (Story)</string>
+    <string name="page_type_advertisement">광고 (Advertisement)</string>
+    <string name="page_type_editorial">편집 (Editorial)</string>
+    <string name="page_type_letters">독자란 (Letters)</string>
+    <string name="page_type_preview">미리보기 (Preview)</string>
+    <string name="page_type_back_cover">뒷표지 (BackCover)</string>
+    <string name="page_type_other">기타 (Other)</string>
+    <string name="page_type_deleted">삭제됨 (Deleted)</string>
+
+    <string name="compression_opt_keep">기존 유지 (재압축 안 함)</string>
+    <string name="compression_opt_store">0 - 무압축 (Store)</string>
+    <string name="compression_opt_1">1 - 가장 빠름</string>
+    <string name="compression_opt_6">6 - 보통 (기본 Deflate)</string>
+    <string name="compression_opt_9">9 - 최대 압축</string>
+    <string name="compression_opt_n">%1$d</string>
+
+    <string name="compression_summary_store">Store (무압축)</string>
+    <string name="compression_summary_mixed">혼합 (Store/Deflate)</string>
+    <string name="compression_summary_none">없음</string>
+
+    <string name="rename_preset_default">기본: Series #001 (2024).cbz</string>
+    <string name="rename_preset_kr_vol">한국어 권: 시리즈 001권 (2024).cbz</string>
+    <string name="rename_preset_volume">볼륨 포함: Series v01 #001 (2024).cbz</string>
+    <string name="rename_preset_title">제목 포함: Series #001 - Title.cbz</string>
+    <string name="rename_preset_simple">간단: Series 001.cbz</string>
+
+    <!-- ViewModel & Repository messages -->
+    <string name="progress_scanning_folder">CBZ 폴더 스캔 중…</string>
+    <string name="msg_folder_loaded">CBZ %1$d개 파일을 불러왔습니다.</string>
+    <string name="msg_folder_open_failed">폴더 열기 실패: %1$s</string>
+    <string name="progress_reading_files">CBZ 파일 읽는 중…</string>
+    <string name="msg_files_added">CBZ %1$d개 파일을 추가했습니다.</string>
+    <string name="progress_opening_file">CBZ 파일 여는 중…</string>
+    <string name="msg_file_open_failed">파일 열기 실패: %1$s</string>
+    <string name="msg_filename_parsed">파일명에서 시리즈/권수/연도를 추출했습니다.</string>
+    <string name="progress_saving_compressing">태그 저장 및 압축 중…</string>
+    <string name="progress_saving_tags">태그 저장 중…</string>
+    <string name="msg_save_complete">저장 완료 (%1$s → %2$s)</string>
+    <string name="msg_save_failed">저장 실패: %1$s</string>
+    <string name="progress_deleting_xml">ComicInfo.xml 삭제 중…</string>
+    <string name="msg_xml_deleted">ComicInfo.xml 태그를 삭제했습니다.</string>
+    <string name="msg_xml_delete_failed">태그 삭제 실패: %1$s</string>
+    <string name="progress_renaming_file">파일 이름 변경 중…</string>
+    <string name="msg_rename_complete">이름 변경 완료: %1$s</string>
+    <string name="msg_rename_failed">파일 이름 변경 실패 (권한 또는 동일 파일명 존재)</string>
+    <string name="external_folder_fallback">외부 폴더</string>
+    <string name="selected_folder_fallback">선택된 폴더</string>
+    <string name="msg_external_path_set">외부 불러오기 경로 설정: %1$s</string>
+    <string name="msg_external_path_cleared">외부 불러오기 경로가 초기화되었습니다.</string>
+    <string name="msg_external_path_required">먼저 외부 불러오기 경로를 선택해 주세요.</string>
+    <string name="progress_scanning_external">외부 폴더 스캔 중…</string>
+    <string name="msg_external_none_found">외부 경로(%1$s)에서 이미지가 포함된 폴더를 찾지 못했습니다.</string>
+    <string name="msg_external_scan_failed">외부 폴더 스캔 실패: %1$s</string>
+    <string name="progress_importing_external">외부 파일 불러오는 중 (%1$d/%2$d)</string>
+    <string name="progress_preparing_cbz">%1$s.cbz 준비 중…</string>
+    <string name="msg_import_complete">외부 불러오기 완료: %1$d/%2$d개 (무압축 보관)</string>
+    <string name="msg_import_partial_error"> · 일부 오류: %1$s</string>
+    <string name="progress_batch_compressing">일괄 압축 중 (%1$d/%2$d)</string>
+    <string name="msg_batch_compress_done">일괄 압축 완료: %1$d/%2$d개 (%3$s → %4$s)</string>
+    <string name="progress_batch_saving_tags">일괄 태그 저장 중 (%1$d/%2$d)</string>
+    <string name="msg_batch_tags_done">일괄 태그 저장 완료: %1$d/%2$d개</string>
+    <string name="progress_batch_parsing">파일명 파싱 및 저장 중 (%1$d/%2$d)</string>
+    <string name="msg_batch_parse_done">파일명 파싱 저장 완료: %1$d/%2$d개</string>
+    <string name="progress_batch_renaming">일괄 이름 변경 중 (%1$d/%2$d)</string>
+    <string name="msg_batch_rename_done">일괄 이름 변경 완료: %1$d/%2$d개</string>
+    <string name="msg_batch_rename_skipped">건너뜀 %1$d</string>
+    <string name="msg_batch_rename_failed">실패 %1$d</string>
+
+    <string name="err_cannot_open_file">파일을 열 수 없습니다: %1$s</string>
+    <string name="err_no_images_in_folder">\'%1$s\' 폴더에 불러올 이미지가 없습니다.</string>
+    <string name="err_cannot_read_image">이미지 파일을 읽을 수 없습니다: %1$s</string>
+    <string name="err_cannot_create_cbz">대상 폴더에 CBZ 파일을 생성할 수 없습니다: %1$s</string>
+    <string name="err_no_write_permission">파일에 쓸 권한이 없습니다: %1$s</string>
+</resources>

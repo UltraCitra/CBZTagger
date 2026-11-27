@@ -96,12 +96,14 @@ import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
+import com.cbztagger.app.R
 import com.cbztagger.app.core.ComicInfo
 import com.cbztagger.app.core.FileRenamer
 import com.cbztagger.app.core.PageBatchHelper
@@ -115,6 +117,8 @@ import com.cbztagger.app.ui.components.AuthorCreditInput
 import com.cbztagger.app.ui.components.FastScrollIndicator
 import com.cbztagger.app.ui.components.LazyListFastScrollbar
 import com.cbztagger.app.ui.components.MangaSelectorRow
+import com.cbztagger.app.ui.components.localizeCompressionSummary
+import com.cbztagger.app.ui.components.localizedLabel
 import com.cbztagger.app.ui.dialogs.BatchBookmarkDialog
 import com.cbztagger.app.ui.dialogs.PageRangeSelectDialog
 import kotlin.math.roundToInt
@@ -153,7 +157,7 @@ fun EditorScreen(
                             style = MaterialTheme.typography.titleMedium,
                         )
                         Text(
-                            text = "${editor.item.pageCount}p · ${MainViewModel.formatBytes(editor.item.sizeBytes)} · ${editor.item.compressionSummary}",
+                            text = "${editor.item.pageCount}p · ${MainViewModel.formatBytes(editor.item.sizeBytes)} · ${localizeCompressionSummary(editor.item.compressionSummary)}",
                             style = MaterialTheme.typography.labelSmall,
                             color = MaterialTheme.colorScheme.onSurfaceVariant,
                         )
@@ -161,19 +165,19 @@ fun EditorScreen(
                 },
                 navigationIcon = {
                     IconButton(onClick = onBack) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "뒤로")
+                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = stringResource(R.string.action_back))
                     }
                 },
                 actions = {
                     IconButton(onClick = onParseFilename) {
-                        Icon(Icons.Default.AutoFixHigh, contentDescription = "파일명에서 태그 추출")
+                        Icon(Icons.Default.AutoFixHigh, contentDescription = stringResource(R.string.editor_cd_parse_filename))
                     }
                     IconButton(onClick = { showRenameDialog = true }) {
-                        Icon(Icons.Default.DriveFileRenameOutline, contentDescription = "파일 이름 변경")
+                        Icon(Icons.Default.DriveFileRenameOutline, contentDescription = stringResource(R.string.editor_cd_rename_file))
                     }
                     if (editor.item.hasComicInfo) {
                         IconButton(onClick = { showDeleteConfirm = true }) {
-                            Icon(Icons.Default.Delete, contentDescription = "태그 삭제")
+                            Icon(Icons.Default.Delete, contentDescription = stringResource(R.string.editor_cd_delete_tags))
                         }
                     }
                 },
@@ -195,9 +199,9 @@ fun EditorScreen(
                         Icon(Icons.Default.Save, contentDescription = null)
                         Spacer(Modifier.width(8.dp))
                         val saveLabel = if (settings.zipCompressionLevel < 0) {
-                            "태그 저장 (기존 유지)"
+                            stringResource(R.string.editor_save_keep)
                         } else {
-                            "태그 저장 (압축 ${settings.zipCompressionLevel})"
+                            stringResource(R.string.editor_save_level, settings.zipCompressionLevel)
                         }
                         Text(saveLabel)
                     }
@@ -211,9 +215,9 @@ fun EditorScreen(
                 .padding(padding),
         ) {
             TabRow(selectedTabIndex = tabIndex) {
-                Tab(selected = tabIndex == 0, onClick = { tabIndex = 0 }, text = { Text("기본 정보") })
-                Tab(selected = tabIndex == 1, onClick = { tabIndex = 1 }, text = { Text("상세 · 크레딧") })
-                Tab(selected = tabIndex == 2, onClick = { tabIndex = 2 }, text = { Text("페이지 (${editor.pageNames.size})") })
+                Tab(selected = tabIndex == 0, onClick = { tabIndex = 0 }, text = { Text(stringResource(R.string.editor_tab_basic)) })
+                Tab(selected = tabIndex == 1, onClick = { tabIndex = 1 }, text = { Text(stringResource(R.string.editor_tab_details)) })
+                Tab(selected = tabIndex == 2, onClick = { tabIndex = 2 }, text = { Text(stringResource(R.string.editor_tab_pages, editor.pageNames.size)) })
             }
 
             when (tabIndex) {
@@ -255,16 +259,16 @@ fun EditorScreen(
     if (showDeleteConfirm) {
         AlertDialog(
             onDismissRequest = { showDeleteConfirm = false },
-            title = { Text("ComicInfo.xml 삭제") },
-            text = { Text("이 CBZ 파일에서 ComicInfo.xml 태그를 삭제하시겠습니까?") },
+            title = { Text(stringResource(R.string.editor_delete_confirm_title)) },
+            text = { Text(stringResource(R.string.editor_delete_confirm_message)) },
             confirmButton = {
                 Button(onClick = {
                     showDeleteConfirm = false
                     onDeleteTags()
-                }) { Text("삭제") }
+                }) { Text(stringResource(R.string.action_delete)) }
             },
             dismissButton = {
-                TextButton(onClick = { showDeleteConfirm = false }) { Text("취소") }
+                TextButton(onClick = { showDeleteConfirm = false }) { Text(stringResource(R.string.action_cancel)) }
             },
         )
     }
@@ -280,14 +284,14 @@ fun EditorScreen(
         var newName by remember(suggested) { mutableStateOf(suggested) }
         AlertDialog(
             onDismissRequest = { showRenameDialog = false },
-            title = { Text("파일 이름 변경") },
+            title = { Text(stringResource(R.string.editor_rename_title)) },
             text = {
                 Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                    Text("현재: ${editor.item.displayName}", style = MaterialTheme.typography.bodySmall)
+                    Text(stringResource(R.string.editor_rename_current, editor.item.displayName), style = MaterialTheme.typography.bodySmall)
                     OutlinedTextField(
                         value = newName,
                         onValueChange = { newName = it },
-                        label = { Text("새 파일명 (.cbz)") },
+                        label = { Text(stringResource(R.string.editor_rename_new_label)) },
                         singleLine = true,
                         modifier = Modifier.fillMaxWidth(),
                     )
@@ -300,10 +304,10 @@ fun EditorScreen(
                         val finalName = if (newName.endsWith(".cbz", true)) newName else "$newName.cbz"
                         onRenameFile(finalName)
                     },
-                ) { Text("변경") }
+                ) { Text(stringResource(R.string.action_change)) }
             },
             dismissButton = {
-                TextButton(onClick = { showRenameDialog = false }) { Text("취소") }
+                TextButton(onClick = { showRenameDialog = false }) { Text(stringResource(R.string.action_cancel)) }
             },
         )
     }
@@ -355,7 +359,7 @@ private fun BasicInfoTab(
                 if (coverThumbnail != null) {
                     Image(
                         bitmap = coverThumbnail.asImageBitmap(),
-                        contentDescription = "표지",
+                        contentDescription = stringResource(R.string.editor_cd_cover),
                         contentScale = ContentScale.Crop,
                         modifier = Modifier.fillMaxSize(),
                     )
@@ -367,14 +371,14 @@ private fun BasicInfoTab(
                 OutlinedTextField(
                     value = info.series,
                     onValueChange = { v -> onDraftChange { it.copy(series = v) } },
-                    label = { Text("시리즈 (Series)") },
+                    label = { Text(stringResource(R.string.editor_field_series)) },
                     singleLine = true,
                     modifier = Modifier.fillMaxWidth(),
                 )
                 OutlinedButton(onClick = onParseFilename, modifier = Modifier.fillMaxWidth()) {
                     Icon(Icons.Default.AutoFixHigh, contentDescription = null, modifier = Modifier.size(18.dp))
                     Spacer(Modifier.width(6.dp))
-                    Text("파일명에서 자동 채우기")
+                    Text(stringResource(R.string.editor_btn_auto_fill))
                 }
             }
         }
@@ -383,21 +387,21 @@ private fun BasicInfoTab(
             OutlinedTextField(
                 value = info.number,
                 onValueChange = { v -> onDraftChange { it.copy(number = v) } },
-                label = { Text("번호 (Number)") },
+                label = { Text(stringResource(R.string.editor_field_number)) },
                 singleLine = true,
                 modifier = Modifier.weight(1f),
             )
             OutlinedTextField(
                 value = info.count?.toString().orEmpty(),
                 onValueChange = { v -> onDraftChange { it.copy(count = v.filter(Char::isDigit).toIntOrNull()) } },
-                label = { Text("전체 (Count)") },
+                label = { Text(stringResource(R.string.editor_field_count)) },
                 singleLine = true,
                 modifier = Modifier.weight(1f),
             )
             OutlinedTextField(
                 value = info.volume?.toString().orEmpty(),
                 onValueChange = { v -> onDraftChange { it.copy(volume = v.filter(Char::isDigit).toIntOrNull()) } },
-                label = { Text("볼륨 (Volume)") },
+                label = { Text(stringResource(R.string.editor_field_volume)) },
                 singleLine = true,
                 modifier = Modifier.weight(1f),
             )
@@ -411,7 +415,7 @@ private fun BasicInfoTab(
             OutlinedTextField(
                 value = info.title,
                 onValueChange = { v -> onDraftChange { it.copy(title = v) } },
-                label = { Text("제목 (Title)") },
+                label = { Text(stringResource(R.string.editor_field_title)) },
                 singleLine = true,
                 modifier = Modifier.weight(1f),
             )
@@ -424,7 +428,7 @@ private fun BasicInfoTab(
                 enabled = canGenerateTitle,
                 contentPadding = PaddingValues(horizontal = 10.dp, vertical = 10.dp),
             ) {
-                Text("시리즈+번호", style = MaterialTheme.typography.labelMedium, maxLines = 1)
+                Text(stringResource(R.string.editor_btn_series_number), style = MaterialTheme.typography.labelMedium, maxLines = 1)
             }
         }
 
@@ -432,14 +436,14 @@ private fun BasicInfoTab(
             OutlinedTextField(
                 value = info.publisher,
                 onValueChange = { v -> onDraftChange { it.copy(publisher = v) } },
-                label = { Text("출판사 (Publisher)") },
+                label = { Text(stringResource(R.string.editor_field_publisher)) },
                 singleLine = true,
                 modifier = Modifier.weight(1f),
             )
             OutlinedTextField(
                 value = info.imprint,
                 onValueChange = { v -> onDraftChange { it.copy(imprint = v) } },
-                label = { Text("임프린트 (Imprint)") },
+                label = { Text(stringResource(R.string.editor_field_imprint)) },
                 singleLine = true,
                 modifier = Modifier.weight(1f),
             )
@@ -449,21 +453,21 @@ private fun BasicInfoTab(
             OutlinedTextField(
                 value = info.year?.toString().orEmpty(),
                 onValueChange = { v -> onDraftChange { it.copy(year = v.filter(Char::isDigit).take(4).toIntOrNull()) } },
-                label = { Text("연도") },
+                label = { Text(stringResource(R.string.editor_field_year)) },
                 singleLine = true,
                 modifier = Modifier.weight(1f),
             )
             OutlinedTextField(
                 value = info.month?.toString().orEmpty(),
                 onValueChange = { v -> onDraftChange { it.copy(month = v.filter(Char::isDigit).take(2).toIntOrNull()) } },
-                label = { Text("월") },
+                label = { Text(stringResource(R.string.editor_field_month)) },
                 singleLine = true,
                 modifier = Modifier.weight(1f),
             )
             OutlinedTextField(
                 value = info.day?.toString().orEmpty(),
                 onValueChange = { v -> onDraftChange { it.copy(day = v.filter(Char::isDigit).take(2).toIntOrNull()) } },
-                label = { Text("일") },
+                label = { Text(stringResource(R.string.editor_field_day)) },
                 singleLine = true,
                 modifier = Modifier.weight(1f),
             )
@@ -473,14 +477,14 @@ private fun BasicInfoTab(
             OutlinedTextField(
                 value = info.genre,
                 onValueChange = { v -> onDraftChange { it.copy(genre = v) } },
-                label = { Text("장르 (쉼표 구분)") },
+                label = { Text(stringResource(R.string.editor_field_genre)) },
                 singleLine = true,
                 modifier = Modifier.weight(2f),
             )
             OutlinedTextField(
                 value = info.languageIso,
                 onValueChange = { v -> onDraftChange { it.copy(languageIso = v) } },
-                label = { Text("언어 (ko/en/ja)") },
+                label = { Text(stringResource(R.string.editor_field_language)) },
                 singleLine = true,
                 modifier = Modifier.weight(1f),
             )
@@ -496,7 +500,7 @@ private fun BasicInfoTab(
             horizontalArrangement = Arrangement.SpaceBetween,
             verticalAlignment = Alignment.CenterVertically,
         ) {
-            Text("흑백 만화 (BlackAndWhite)", style = MaterialTheme.typography.bodyMedium)
+            Text(stringResource(R.string.editor_field_bw), style = MaterialTheme.typography.bodyMedium)
             Switch(
                 checked = info.blackAndWhite == true,
                 onCheckedChange = { checked -> onDraftChange { it.copy(blackAndWhite = if (checked) true else null) } },
@@ -506,7 +510,7 @@ private fun BasicInfoTab(
         OutlinedTextField(
             value = info.summary,
             onValueChange = { v -> onDraftChange { it.copy(summary = v) } },
-            label = { Text("줄거리 (Summary)") },
+            label = { Text(stringResource(R.string.editor_field_summary)) },
             minLines = 3,
             maxLines = 6,
             modifier = Modifier.fillMaxWidth(),
@@ -515,7 +519,7 @@ private fun BasicInfoTab(
         OutlinedTextField(
             value = info.notes,
             onValueChange = { v -> onDraftChange { it.copy(notes = v) } },
-            label = { Text("메모 (Notes)") },
+            label = { Text(stringResource(R.string.editor_field_notes)) },
             minLines = 2,
             maxLines = 4,
             modifier = Modifier.fillMaxWidth(),
@@ -536,32 +540,32 @@ private fun CreditsAndDetailsTab(
             .padding(14.dp),
         verticalArrangement = Arrangement.spacedBy(10.dp),
     ) {
-        Text("제작진 (크레딧)", style = MaterialTheme.typography.titleSmall, fontWeight = FontWeight.Bold)
+        Text(stringResource(R.string.editor_section_credits), style = MaterialTheme.typography.titleSmall, fontWeight = FontWeight.Bold)
         AuthorCreditInput(
             writer = info.writer,
             penciller = info.penciller,
             resetKey = itemUri,
             onChange = { w, p -> onDraftChange { it.copy(writer = w, penciller = p) } },
         )
-        OutlinedTextField(value = info.inker, onValueChange = { v -> onDraftChange { it.copy(inker = v) } }, label = { Text("잉커 (Inker)") }, singleLine = true, modifier = Modifier.fillMaxWidth())
-        OutlinedTextField(value = info.colorist, onValueChange = { v -> onDraftChange { it.copy(colorist = v) } }, label = { Text("채색 (Colorist)") }, singleLine = true, modifier = Modifier.fillMaxWidth())
-        OutlinedTextField(value = info.letterer, onValueChange = { v -> onDraftChange { it.copy(letterer = v) } }, label = { Text("식자 (Letterer)") }, singleLine = true, modifier = Modifier.fillMaxWidth())
-        OutlinedTextField(value = info.coverArtist, onValueChange = { v -> onDraftChange { it.copy(coverArtist = v) } }, label = { Text("표지작가 (CoverArtist)") }, singleLine = true, modifier = Modifier.fillMaxWidth())
-        OutlinedTextField(value = info.editor, onValueChange = { v -> onDraftChange { it.copy(editor = v) } }, label = { Text("편집자 (Editor)") }, singleLine = true, modifier = Modifier.fillMaxWidth())
+        OutlinedTextField(value = info.inker, onValueChange = { v -> onDraftChange { it.copy(inker = v) } }, label = { Text(stringResource(R.string.editor_field_inker)) }, singleLine = true, modifier = Modifier.fillMaxWidth())
+        OutlinedTextField(value = info.colorist, onValueChange = { v -> onDraftChange { it.copy(colorist = v) } }, label = { Text(stringResource(R.string.editor_field_colorist)) }, singleLine = true, modifier = Modifier.fillMaxWidth())
+        OutlinedTextField(value = info.letterer, onValueChange = { v -> onDraftChange { it.copy(letterer = v) } }, label = { Text(stringResource(R.string.editor_field_letterer)) }, singleLine = true, modifier = Modifier.fillMaxWidth())
+        OutlinedTextField(value = info.coverArtist, onValueChange = { v -> onDraftChange { it.copy(coverArtist = v) } }, label = { Text(stringResource(R.string.editor_field_cover_artist)) }, singleLine = true, modifier = Modifier.fillMaxWidth())
+        OutlinedTextField(value = info.editor, onValueChange = { v -> onDraftChange { it.copy(editor = v) } }, label = { Text(stringResource(R.string.editor_field_editor)) }, singleLine = true, modifier = Modifier.fillMaxWidth())
 
         HorizontalDivider(modifier = Modifier.padding(vertical = 4.dp))
-        Text("추가 분류 정보", style = MaterialTheme.typography.titleSmall, fontWeight = FontWeight.Bold)
-        OutlinedTextField(value = info.storyArc, onValueChange = { v -> onDraftChange { it.copy(storyArc = v) } }, label = { Text("스토리 아크 (StoryArc)") }, singleLine = true, modifier = Modifier.fillMaxWidth())
-        OutlinedTextField(value = info.seriesGroup, onValueChange = { v -> onDraftChange { it.copy(seriesGroup = v) } }, label = { Text("시리즈 그룹 (SeriesGroup)") }, singleLine = true, modifier = Modifier.fillMaxWidth())
-        OutlinedTextField(value = info.characters, onValueChange = { v -> onDraftChange { it.copy(characters = v) } }, label = { Text("등장인물 (Characters)") }, singleLine = true, modifier = Modifier.fillMaxWidth())
-        OutlinedTextField(value = info.teams, onValueChange = { v -> onDraftChange { it.copy(teams = v) } }, label = { Text("팀 (Teams)") }, singleLine = true, modifier = Modifier.fillMaxWidth())
-        OutlinedTextField(value = info.locations, onValueChange = { v -> onDraftChange { it.copy(locations = v) } }, label = { Text("장소 (Locations)") }, singleLine = true, modifier = Modifier.fillMaxWidth())
+        Text(stringResource(R.string.editor_section_extra), style = MaterialTheme.typography.titleSmall, fontWeight = FontWeight.Bold)
+        OutlinedTextField(value = info.storyArc, onValueChange = { v -> onDraftChange { it.copy(storyArc = v) } }, label = { Text(stringResource(R.string.editor_field_story_arc)) }, singleLine = true, modifier = Modifier.fillMaxWidth())
+        OutlinedTextField(value = info.seriesGroup, onValueChange = { v -> onDraftChange { it.copy(seriesGroup = v) } }, label = { Text(stringResource(R.string.editor_field_series_group)) }, singleLine = true, modifier = Modifier.fillMaxWidth())
+        OutlinedTextField(value = info.characters, onValueChange = { v -> onDraftChange { it.copy(characters = v) } }, label = { Text(stringResource(R.string.editor_field_characters)) }, singleLine = true, modifier = Modifier.fillMaxWidth())
+        OutlinedTextField(value = info.teams, onValueChange = { v -> onDraftChange { it.copy(teams = v) } }, label = { Text(stringResource(R.string.editor_field_teams)) }, singleLine = true, modifier = Modifier.fillMaxWidth())
+        OutlinedTextField(value = info.locations, onValueChange = { v -> onDraftChange { it.copy(locations = v) } }, label = { Text(stringResource(R.string.editor_field_locations)) }, singleLine = true, modifier = Modifier.fillMaxWidth())
         Row(horizontalArrangement = Arrangement.spacedBy(8.dp), modifier = Modifier.fillMaxWidth()) {
-            OutlinedTextField(value = info.ageRating, onValueChange = { v -> onDraftChange { it.copy(ageRating = v) } }, label = { Text("연령 등급") }, singleLine = true, modifier = Modifier.weight(1f))
-            OutlinedTextField(value = info.format, onValueChange = { v -> onDraftChange { it.copy(format = v) } }, label = { Text("포맷 (TPB 등)") }, singleLine = true, modifier = Modifier.weight(1f))
+            OutlinedTextField(value = info.ageRating, onValueChange = { v -> onDraftChange { it.copy(ageRating = v) } }, label = { Text(stringResource(R.string.editor_field_age_rating)) }, singleLine = true, modifier = Modifier.weight(1f))
+            OutlinedTextField(value = info.format, onValueChange = { v -> onDraftChange { it.copy(format = v) } }, label = { Text(stringResource(R.string.editor_field_format)) }, singleLine = true, modifier = Modifier.weight(1f))
         }
-        OutlinedTextField(value = info.scanInformation, onValueChange = { v -> onDraftChange { it.copy(scanInformation = v) } }, label = { Text("스캔 정보 (ScanInformation)") }, singleLine = true, modifier = Modifier.fillMaxWidth())
-        OutlinedTextField(value = info.web, onValueChange = { v -> onDraftChange { it.copy(web = v) } }, label = { Text("웹 링크 (Web)") }, singleLine = true, modifier = Modifier.fillMaxWidth())
+        OutlinedTextField(value = info.scanInformation, onValueChange = { v -> onDraftChange { it.copy(scanInformation = v) } }, label = { Text(stringResource(R.string.editor_field_scan_info)) }, singleLine = true, modifier = Modifier.fillMaxWidth())
+        OutlinedTextField(value = info.web, onValueChange = { v -> onDraftChange { it.copy(web = v) } }, label = { Text(stringResource(R.string.editor_field_web)) }, singleLine = true, modifier = Modifier.fillMaxWidth())
     }
 }
 
@@ -579,7 +583,7 @@ private fun PagesTab(
 ) {
     if (pageNames.isEmpty()) {
         Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-            Text("페이지 목록을 불러오는 중이거나 이미지가 없습니다.")
+            Text(stringResource(R.string.pages_empty))
         }
         return
     }
@@ -626,7 +630,7 @@ private fun PagesTab(
                         ) {
                             Icon(Icons.Default.Checklist, contentDescription = null, modifier = Modifier.size(18.dp))
                             Spacer(Modifier.width(6.dp))
-                            Text("일괄 속성 편집", maxLines = 1, overflow = TextOverflow.Ellipsis)
+                            Text(stringResource(R.string.pages_btn_batch_edit), maxLines = 1, overflow = TextOverflow.Ellipsis)
                         }
                         OutlinedButton(
                             onClick = { showBatchBookmarkDialog = true },
@@ -634,7 +638,7 @@ private fun PagesTab(
                         ) {
                             Icon(Icons.Default.BookmarkAdd, contentDescription = null, modifier = Modifier.size(18.dp))
                             Spacer(Modifier.width(6.dp))
-                            Text("북마크 지정", maxLines = 1, overflow = TextOverflow.Ellipsis)
+                            Text(stringResource(R.string.pages_btn_bookmarks), maxLines = 1, overflow = TextOverflow.Ellipsis)
                         }
                     }
                 } else {
@@ -650,7 +654,7 @@ private fun PagesTab(
                             verticalAlignment = Alignment.CenterVertically,
                         ) {
                             Text(
-                                text = "일괄 속성 편집 (${selectedIndices.size}/${pageCount} 선택)",
+                                text = stringResource(R.string.pages_batch_header, selectedIndices.size, pageCount),
                                 style = MaterialTheme.typography.titleSmall,
                                 fontWeight = FontWeight.Bold,
                             )
@@ -660,7 +664,7 @@ private fun PagesTab(
                                     selectedIndices = emptySet()
                                 },
                             ) {
-                                Text("완료")
+                                Text(stringResource(R.string.action_done))
                             }
                         }
 
@@ -679,11 +683,17 @@ private fun PagesTab(
                                         (0 until pageCount).toSet()
                                     }
                                 },
-                                label = { Text(if (selectedIndices.size == pageCount) "전체 해제" else "전체 선택") },
+                                label = {
+                                    Text(
+                                        stringResource(
+                                            if (selectedIndices.size == pageCount) R.string.action_deselect_all else R.string.action_select_all,
+                                        ),
+                                    )
+                                },
                             )
                             AssistChip(
                                 onClick = { showRangeDialog = true },
-                                label = { Text("범위 선택 (시작~끝)") },
+                                label = { Text(stringResource(R.string.pages_chip_range)) },
                             )
                             AssistChip(
                                 onClick = {
@@ -691,11 +701,11 @@ private fun PagesTab(
                                     onReplaceAllPages(updated)
                                 },
                                 enabled = emptyTypeCount > 0,
-                                label = { Text("빈 페이지 일괄 Story ($emptyTypeCount)") },
+                                label = { Text(stringResource(R.string.pages_chip_fill_story, emptyTypeCount)) },
                             )
                             AssistChip(
                                 onClick = { showBatchBookmarkDialog = true },
-                                label = { Text("북마크 지정") },
+                                label = { Text(stringResource(R.string.pages_btn_bookmarks)) },
                             )
                         }
 
@@ -705,7 +715,7 @@ private fun PagesTab(
                                 enabled = selectedIndices.isNotEmpty(),
                                 modifier = Modifier.fillMaxWidth(),
                             ) {
-                                Text("선택한 ${selectedIndices.size}페이지에 속성 일괄 적용")
+                                Text(stringResource(R.string.pages_btn_apply_type, selectedIndices.size))
                                 Icon(Icons.Default.ArrowDropDown, contentDescription = null)
                             }
                             DropdownMenu(
@@ -713,7 +723,7 @@ private fun PagesTab(
                                 onDismissRequest = { showBatchTypeMenu = false },
                             ) {
                                 DropdownMenuItem(
-                                    text = { Text("일반 (속성 초기화)") },
+                                    text = { Text(stringResource(R.string.pages_type_clear)) },
                                     onClick = {
                                         showBatchTypeMenu = false
                                         onReplaceAllPages(
@@ -724,7 +734,7 @@ private fun PagesTab(
                                 )
                                 PageType.entries.forEach { pt ->
                                     DropdownMenuItem(
-                                        text = { Text(pt.labelKo) },
+                                        text = { Text(pt.localizedLabel()) },
                                         onClick = {
                                             showBatchTypeMenu = false
                                             onReplaceAllPages(
@@ -741,7 +751,7 @@ private fun PagesTab(
                                 }
                                 HorizontalDivider()
                                 DropdownMenuItem(
-                                    text = { Text("양면(DoublePage) 일괄 설정") },
+                                    text = { Text(stringResource(R.string.pages_double_set_batch)) },
                                     onClick = {
                                         showBatchTypeMenu = false
                                         onReplaceAllPages(
@@ -756,7 +766,7 @@ private fun PagesTab(
                                     },
                                 )
                                 DropdownMenuItem(
-                                    text = { Text("양면(DoublePage) 일괄 해제") },
+                                    text = { Text(stringResource(R.string.pages_double_clear_batch)) },
                                     onClick = {
                                         showBatchTypeMenu = false
                                         onReplaceAllPages(
@@ -875,20 +885,21 @@ private fun PagesTab(
                             )
                         }
                         if (hasBookmark) {
+                            val doublePageLabel = stringResource(R.string.pages_double_label)
                             Row(
                                 verticalAlignment = Alignment.CenterVertically,
                                 horizontalArrangement = Arrangement.spacedBy(2.dp),
                             ) {
                                 Icon(
                                     imageVector = Icons.Default.Bookmark,
-                                    contentDescription = "북마크",
+                                    contentDescription = stringResource(R.string.pages_cd_bookmark),
                                     tint = MaterialTheme.colorScheme.primary,
                                     modifier = Modifier.size(14.dp),
                                 )
                                 Text(
                                     text = buildString {
                                         append(": ${pageInfo.bookmark}")
-                                        if (pageInfo.doublePage == true) append(" · 양면 페이지")
+                                        if (pageInfo.doublePage == true) append(" · $doublePageLabel")
                                     },
                                     style = MaterialTheme.typography.labelSmall,
                                     color = MaterialTheme.colorScheme.primary,
@@ -897,12 +908,10 @@ private fun PagesTab(
                                 )
                             }
                         } else {
-                            val subtitle = if (pageInfo.doublePage == true) {
-                                "양면 페이지"
-                            } else if (batchMode) {
-                                "탭하여 선택"
-                            } else {
-                                "탭하여 미리보기 · 길게 눌러 북마크 편집"
+                            val subtitle = when {
+                                pageInfo.doublePage == true -> stringResource(R.string.pages_double_label)
+                                batchMode -> stringResource(R.string.pages_subtitle_tap_select)
+                                else -> stringResource(R.string.pages_subtitle_hint)
                             }
                             Text(
                                 text = subtitle,
@@ -918,6 +927,7 @@ private fun PagesTab(
                         transitionSpec = { fadeIn(tween(180)) togetherWith fadeOut(tween(140)) },
                         label = "page_row_trailing",
                     ) { inBatchMode ->
+                        val normalLabel = stringResource(R.string.pages_type_normal)
                         if (inBatchMode) {
                             Surface(
                                 shape = RoundedCornerShape(6.dp),
@@ -928,7 +938,7 @@ private fun PagesTab(
                                 },
                             ) {
                                 Text(
-                                    text = pageInfo.type.ifBlank { "일반" },
+                                    text = pageInfo.type.ifBlank { normalLabel },
                                     style = MaterialTheme.typography.labelSmall,
                                     modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp),
                                 )
@@ -936,12 +946,12 @@ private fun PagesTab(
                         } else {
                             Box {
                                 TextButton(onClick = { typeExpanded = true }) {
-                                    Text(pageInfo.type.ifBlank { "일반" })
+                                    Text(pageInfo.type.ifBlank { normalLabel })
                                     Icon(Icons.Default.ArrowDropDown, contentDescription = null)
                                 }
                                 DropdownMenu(expanded = typeExpanded, onDismissRequest = { typeExpanded = false }) {
                                     DropdownMenuItem(
-                                        text = { Text("일반 (지정 안 함)") },
+                                        text = { Text(stringResource(R.string.pages_type_none)) },
                                         onClick = {
                                             typeExpanded = false
                                             onUpdatePage(idx, pageInfo.copy(type = ""))
@@ -949,7 +959,7 @@ private fun PagesTab(
                                     )
                                     PageType.entries.forEach { pt ->
                                         DropdownMenuItem(
-                                            text = { Text(pt.labelKo) },
+                                            text = { Text(pt.localizedLabel()) },
                                             onClick = {
                                                 typeExpanded = false
                                                 onUpdatePage(idx, pageInfo.copy(type = pt.xmlValue))
@@ -958,7 +968,13 @@ private fun PagesTab(
                                     }
                                     HorizontalDivider()
                                     DropdownMenuItem(
-                                        text = { Text(if (pageInfo.doublePage == true) "양면 해제" else "양면(DoublePage) 설정") },
+                                        text = {
+                                            Text(
+                                                stringResource(
+                                                    if (pageInfo.doublePage == true) R.string.pages_double_clear else R.string.pages_double_set,
+                                                ),
+                                            )
+                                        },
                                         onClick = {
                                             typeExpanded = false
                                             val next = if (pageInfo.doublePage == true) null else true
@@ -1065,14 +1081,14 @@ private fun PageBookmarkDialog(
 
     AlertDialog(
         onDismissRequest = onDismiss,
-        title = { Text("페이지 #$pageNumber 북마크") },
+        title = { Text(stringResource(R.string.pages_bookmark_dialog_title, pageNumber)) },
         text = {
             Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
                 OutlinedTextField(
                     value = bookmarkName,
                     onValueChange = { bookmarkName = it },
-                    label = { Text("북마크 이름") },
-                    placeholder = { Text("예: 1화, 목차, 챕터 시작") },
+                    label = { Text(stringResource(R.string.pages_bookmark_name_label)) },
+                    placeholder = { Text(stringResource(R.string.pages_bookmark_name_placeholder)) },
                     singleLine = true,
                     modifier = Modifier.fillMaxWidth(),
                 )
@@ -1088,7 +1104,7 @@ private fun PageBookmarkDialog(
                             modifier = Modifier.size(18.dp),
                         )
                         Spacer(Modifier.width(4.dp))
-                        Text("북마크 삭제", color = MaterialTheme.colorScheme.error)
+                        Text(stringResource(R.string.pages_bookmark_delete), color = MaterialTheme.colorScheme.error)
                     }
                 }
             }
@@ -1098,12 +1114,12 @@ private fun PageBookmarkDialog(
                 onClick = { onSave(bookmarkName) },
                 enabled = bookmarkName.isNotBlank(),
             ) {
-                Text("저장")
+                Text(stringResource(R.string.action_save))
             }
         },
         dismissButton = {
             TextButton(onClick = onDismiss) {
-                Text("취소")
+                Text(stringResource(R.string.action_cancel))
             }
         },
     )
@@ -1164,12 +1180,15 @@ private fun PageImagePreviewDialog(
     }
     val entryName = pageNames.getOrNull(currentIndex) ?: return
     val currentPageInfo = pages.firstOrNull { it.image == currentIndex }
+    val doubleShortLabel = stringResource(R.string.pages_double_short)
+    val bookmarkText = currentPageInfo?.bookmark?.takeIf { it.isNotBlank() }?.let {
+        stringResource(R.string.preview_bookmark_prefix, it)
+    }
     val pageMetaText = buildList {
         val typeVal = currentPageInfo?.type.orEmpty()
         if (typeVal.isNotBlank()) add(typeVal)
-        if (currentPageInfo?.doublePage == true) add("양면")
-        val bm = currentPageInfo?.bookmark.orEmpty()
-        if (bm.isNotBlank()) add("북마크: $bm")
+        if (currentPageInfo?.doublePage == true) add(doubleShortLabel)
+        if (!bookmarkText.isNullOrBlank()) add(bookmarkText)
     }.joinToString(" · ")
 
     // Keep previous bitmap visible during decode so turning pages never collapses/re-animates the dialog
@@ -1232,17 +1251,15 @@ private fun PageImagePreviewDialog(
                             }
                         }
                         Text(
-                            text = if (isRtl) {
-                                "← 다음 · 우→좌 (Manga) · 이전 →"
-                            } else {
-                                "← 이전 · 좌→우 · 다음 →"
-                            },
+                            text = stringResource(
+                                if (isRtl) R.string.preview_direction_rtl else R.string.preview_direction_ltr,
+                            ),
                             style = MaterialTheme.typography.labelSmall,
                             color = MaterialTheme.colorScheme.onSurfaceVariant,
                         )
                     }
                     IconButton(onClick = onDismiss) {
-                        Icon(Icons.Default.Close, contentDescription = "닫기")
+                        Icon(Icons.Default.Close, contentDescription = stringResource(R.string.action_close))
                     }
                 }
                 HorizontalDivider()
@@ -1261,7 +1278,7 @@ private fun PageImagePreviewDialog(
                     ) {
                         Icon(
                             imageVector = Icons.Default.ChevronLeft,
-                            contentDescription = if (isRtl) "다음 페이지" else "이전 페이지",
+                            contentDescription = stringResource(if (isRtl) R.string.preview_cd_next else R.string.preview_cd_prev),
                             modifier = Modifier.size(30.dp),
                         )
                     }
@@ -1300,7 +1317,7 @@ private fun PageImagePreviewDialog(
                                 modifier = Modifier.fillMaxSize(),
                             )
                             loading -> CircularProgressIndicator()
-                            loadFailed -> Text("이미지를 표시할 수 없습니다.")
+                            loadFailed -> Text(stringResource(R.string.preview_load_failed))
                         }
                     }
 
@@ -1311,7 +1328,7 @@ private fun PageImagePreviewDialog(
                     ) {
                         Icon(
                             imageVector = Icons.Default.ChevronRight,
-                            contentDescription = if (isRtl) "이전 페이지" else "다음 페이지",
+                            contentDescription = stringResource(if (isRtl) R.string.preview_cd_prev else R.string.preview_cd_next),
                             modifier = Modifier.size(30.dp),
                         )
                     }

@@ -1,3 +1,309 @@
+<?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="app_name">CBZTagger</string>
+
+    <!-- Common -->
+    <string name="action_back">Back</string>
+    <string name="action_close">Close</string>
+    <string name="action_cancel">Cancel</string>
+    <string name="action_save">Save</string>
+    <string name="action_delete">Delete</string>
+    <string name="action_change">Change</string>
+    <string name="action_done">Done</string>
+    <string name="action_add">Add</string>
+    <string name="action_select">Select</string>
+    <string name="action_reset">Reset</string>
+    <string name="action_clear">Clear</string>
+    <string name="action_select_all">Select all</string>
+    <string name="action_deselect_all">Deselect all</string>
+    <string name="action_exit">Exit</string>
+    <string name="action_apply">Apply</string>
+    <string name="action_rename">Rename</string>
+
+    <!-- MainActivity dialogs -->
+    <string name="unsaved_changes_title">Unsaved Changes</string>
+    <string name="unsaved_changes_message">Your edited metadata has not been saved yet. Do you want to save before leaving?</string>
+    <string name="unsaved_save_and_leave">Save and leave</string>
+    <string name="unsaved_discard_and_leave">Leave without saving</string>
+    <string name="unsaved_keep_editing">Keep editing</string>
+    <string name="exit_app_title">Exit App</string>
+    <string name="exit_app_message">Do you want to exit %1$s?</string>
+
+    <!-- LibraryScreen -->
+    <string name="library_selected_count">%1$d selected</string>
+    <string name="library_default_compression">Default ZIP: %1$s</string>
+    <string name="library_cd_open_folder">Open folder</string>
+    <string name="library_cd_add_files">Add CBZ files</string>
+    <string name="library_cd_import_external">Import external folders</string>
+    <string name="library_cd_settings">Settings</string>
+    <string name="library_nav_batch_compress">Compress</string>
+    <string name="library_nav_batch_tags">Batch Tags</string>
+    <string name="library_nav_batch_parse">Parse Names</string>
+    <string name="library_nav_batch_rename">Batch Rename</string>
+    <string name="library_empty_title">Offline CBZ Tag &amp; ZIP Tool</string>
+    <string name="library_empty_desc">Open a folder or CBZ files to edit ComicInfo.xml metadata and adjust ZIP compression (0–9).</string>
+    <string name="library_btn_open_folder">Open CBZ Folder</string>
+    <string name="library_btn_pick_files">Select CBZ Files</string>
+    <string name="library_btn_import_external">Import CBZ from External Folder</string>
+    <string name="library_no_tags">No Tags</string>
+    <string name="no_metadata">No metadata</string>
+
+    <!-- Batch dialogs in LibraryScreen -->
+    <string name="batch_compress_title">Batch ZIP Compression (%1$d)</string>
+    <string name="batch_compress_desc">Recompresses all images in the selected CBZ files to the chosen ZIP compression level (0–9).</string>
+    <string name="batch_compress_confirm">Start</string>
+
+    <string name="batch_tags_title">Batch Edit Tags (%1$d)</string>
+    <string name="batch_tags_desc">Only filled fields will be overwritten. Empty fields keep each file\'s existing values.</string>
+    <string name="batch_tags_year_label">Year</string>
+    <string name="batch_tags_lang_label">Language Code (e.g. en, ko, ja)</string>
+    <string name="batch_tags_keep_unchanged">Keep unchanged</string>
+    <string name="batch_tags_confirm">Apply All</string>
+
+    <string name="batch_parse_title">Batch Parse Filenames (%1$d)</string>
+    <string name="batch_parse_desc">Extracts series, issue, volume, and year from each CBZ filename and saves them to ComicInfo.xml.</string>
+    <string name="batch_parse_overwrite">Overwrite existing tags</string>
+    <string name="batch_parse_confirm">Parse &amp; Save</string>
+
+    <string name="batch_rename_title">Batch Rename Files (%1$d)</string>
+    <string name="batch_rename_template_label">Template ({series}, {issue}, {volume}, {year}, {title})</string>
+    <string name="batch_rename_padding_label">Zero-padding</string>
+    <string name="batch_rename_smart_cleanup">Clean empty brackets</string>
+    <string name="batch_rename_oneshot_title">Use {title} when Series is empty (oneshot)</string>
+    <string name="batch_rename_preview_header">Preview (up to 5)</string>
+    <string name="batch_rename_preview_collapse">Collapse preview</string>
+    <string name="batch_rename_preview_expand">Expand preview</string>
+    <string name="batch_rename_skipped_no_tags">(No tags - skipped)</string>
+
+    <!-- EditorScreen -->
+    <string name="editor_cd_parse_filename">Extract tags from filename</string>
+    <string name="editor_cd_rename_file">Rename file</string>
+    <string name="editor_cd_delete_tags">Delete tags</string>
+    <string name="editor_save_keep">Save Tags (Keep Original)</string>
+    <string name="editor_save_level">Save Tags (Level %1$d)</string>
+    <string name="editor_tab_basic">Basic</string>
+    <string name="editor_tab_details">Details</string>
+    <string name="editor_tab_pages">Pages (%1$d)</string>
+    <string name="editor_delete_confirm_title">Delete ComicInfo.xml</string>
+    <string name="editor_delete_confirm_message">Remove ComicInfo.xml metadata from this CBZ file?</string>
+    <string name="editor_rename_title">Rename File</string>
+    <string name="editor_rename_current">Current: %1$s</string>
+    <string name="editor_rename_new_label">New filename (.cbz)</string>
+    <string name="editor_cd_cover">Cover</string>
+    <string name="editor_field_series">Series</string>
+    <string name="editor_btn_auto_fill">Auto-fill from filename</string>
+    <string name="editor_field_number">Number</string>
+    <string name="editor_field_count">Count</string>
+    <string name="editor_field_volume">Volume</string>
+    <string name="editor_field_title">Title</string>
+    <string name="editor_btn_series_number">Series+No</string>
+    <string name="editor_field_publisher">Publisher</string>
+    <string name="editor_field_imprint">Imprint</string>
+    <string name="editor_field_year">Year</string>
+    <string name="editor_field_month">Month</string>
+    <string name="editor_field_day">Day</string>
+    <string name="editor_field_genre">Genre (comma-separated)</string>
+    <string name="editor_field_genre_short">Genre</string>
+    <string name="editor_field_language">Language (en/ko/ja)</string>
+    <string name="editor_field_bw">Black &amp; White</string>
+    <string name="editor_field_summary">Summary</string>
+    <string name="editor_field_notes">Notes</string>
+    <string name="editor_section_credits">Credits</string>
+    <string name="editor_field_inker">Inker</string>
+    <string name="editor_field_colorist">Colorist</string>
+    <string name="editor_field_letterer">Letterer</string>
+    <string name="editor_field_cover_artist">Cover Artist</string>
+    <string name="editor_field_editor">Editor</string>
+    <string name="editor_section_extra">Additional Info</string>
+    <string name="editor_field_story_arc">Story Arc</string>
+    <string name="editor_field_series_group">Series Group</string>
+    <string name="editor_field_characters">Characters</string>
+    <string name="editor_field_teams">Teams</string>
+    <string name="editor_field_locations">Locations</string>
+    <string name="editor_field_age_rating">Age Rating</string>
+    <string name="editor_field_format">Format (TPB, etc.)</string>
+    <string name="editor_field_scan_info">Scan Information</string>
+    <string name="editor_field_web">Web Link</string>
+
+    <!-- EditorScreen PagesTab & Preview -->
+    <string name="pages_empty">Loading pages or no images found.</string>
+    <string name="pages_btn_batch_edit">Batch Edit</string>
+    <string name="pages_btn_bookmarks">Bookmarks</string>
+    <string name="pages_batch_header">Batch Edit (%1$d/%2$d selected)</string>
+    <string name="pages_chip_range">Select Range</string>
+    <string name="pages_chip_fill_story">Set Empty to Story (%1$d)</string>
+    <string name="pages_btn_apply_type">Apply attribute to %1$d selected</string>
+    <string name="pages_type_clear">Normal (Clear)</string>
+    <string name="pages_type_none">Normal (None)</string>
+    <string name="pages_type_normal">Normal</string>
+    <string name="pages_double_set_batch">Set DoublePage</string>
+    <string name="pages_double_clear_batch">Clear DoublePage</string>
+    <string name="pages_double_set">Set DoublePage</string>
+    <string name="pages_double_clear">Clear DoublePage</string>
+    <string name="pages_double_label">Double page</string>
+    <string name="pages_double_short">Double</string>
+    <string name="pages_cd_bookmark">Bookmark</string>
+    <string name="pages_subtitle_tap_select">Tap to select</string>
+    <string name="pages_subtitle_hint">Tap to preview · Long-press to edit bookmark</string>
+    <string name="pages_bookmark_dialog_title">Page #%1$d Bookmark</string>
+    <string name="pages_bookmark_name_label">Bookmark name</string>
+    <string name="pages_bookmark_name_placeholder">e.g. Ch. 1, Contents, Prologue</string>
+    <string name="pages_bookmark_delete">Delete bookmark</string>
+    <string name="preview_bookmark_prefix">Bookmark: %1$s</string>
+    <string name="preview_direction_rtl">← Next · R→L (Manga) · Prev →</string>
+    <string name="preview_direction_ltr">← Prev · L→R · Next →</string>
+    <string name="preview_cd_next">Next page</string>
+    <string name="preview_cd_prev">Previous page</string>
+    <string name="preview_load_failed">Unable to display image.</string>
+
+    <!-- PageBatchDialogs -->
+    <string name="page_range_title">Select Page Range</string>
+    <string name="page_range_desc">Enter start and end page numbers (1–%1$dp).</string>
+    <string name="page_range_start">Start</string>
+    <string name="page_range_end">End</string>
+    <string name="batch_bookmark_title">Bookmarks (1–%1$dp)</string>
+    <string name="batch_bookmark_empty">No bookmarks set. Tap + below to add one.</string>
+    <string name="batch_bookmark_invalid_page">Page number must be between 1 and %1$d.</string>
+    <string name="batch_bookmark_cd_add">Add bookmark</string>
+    <string name="batch_bookmark_cd_remove">Remove bookmark</string>
+
+    <!-- ExternalImportDialog -->
+    <string name="import_title">Import External Folders</string>
+    <string name="import_source_label">Source Path (Original)</string>
+    <string name="import_dest_label">CBZ Output Folder</string>
+    <string name="import_dest_same">%1$s (Same as source)</string>
+    <string name="import_info_banner">Store (Uncompressed) · Keep original image filenames</string>
+    <string name="import_chip_all">All (%1$d)</string>
+    <string name="import_chip_new">New only (%1$d)</string>
+    <string name="import_item_summary">→ %1$s · %2$d images · %3$s</string>
+    <string name="import_badge_imported">Already imported</string>
+    <string name="import_badge_xml">Has ComicInfo.xml</string>
+    <string name="import_delete_source_checkbox">Delete original folders after import</string>
+    <string name="import_confirm_button">Import (%1$d)</string>
+
+    <!-- TagInputControls -->
+    <string name="manga_selector_label">Reading Direction (Manga)</string>
+    <string name="manga_option_none">Not specified</string>
+    <string name="manga_option_yes">Yes (Manga)</string>
+    <string name="manga_option_rtl">YesAndRightToLeft (Manga · R→L)</string>
+    <string name="manga_option_no">No (Standard · L→R)</string>
+    <string name="author_combined_label">Author (Art &amp; Story)</string>
+    <string name="author_split_label">Separate</string>
+    <string name="author_penciller_label">Penciller (Art)</string>
+    <string name="author_writer_label">Writer (Story)</string>
+
+    <!-- CompressionControls -->
+    <string name="zip_section_label">ZIP Compression</string>
+    <string name="zip_level_value">Level: %1$d</string>
+    <string name="zip_mode_keep">Keep Original</string>
+    <string name="zip_mode_compress">Compress</string>
+    <string name="zip_keep_desc">Keeps existing image compression and only updates ComicInfo.xml quickly.</string>
+    <string name="zip_slider_desc">0 (Store) loads fastest with no compression; 1–9 (Deflate) reduces file size at higher levels with slower saves. (Recommended: 6)</string>
+
+    <!-- SettingsScreen -->
+    <string name="settings_title">Settings</string>
+    <string name="settings_zip_title">Default ZIP Compression (On Tag Save)</string>
+    <string name="settings_zip_desc">Default ZIP compression applied when saving tags. Settings persist automatically across restarts.</string>
+    <string name="settings_external_title">External Import Path</string>
+    <string name="settings_external_desc">Packs folders in &lt;path&gt;/&lt;folder&gt;/&lt;images&gt; structure into &lt;folder&gt;.cbz (uncompressed Store).</string>
+    <string name="settings_external_current">Current path: %1$s</string>
+    <string name="settings_external_unset">Not set</string>
+    <string name="settings_external_pick">Select Path</string>
+    <string name="settings_external_change">Change Path</string>
+    <string name="settings_external_delete_title">Delete original folders after successful import</string>
+    <string name="settings_external_delete_desc">Only deletes folders that imported successfully; failed items are kept.</string>
+    <string name="settings_pages_title">Page List &amp; Preview</string>
+    <string name="settings_thumbnails_title">Show thumbnails in page list</string>
+    <string name="settings_thumbnails_desc">Displays page thumbnails in Editor &gt; Pages tab. (Not cached)</string>
+    <string name="settings_manga_dir_title">Follow Manga tag direction in preview</string>
+    <string name="settings_manga_dir_desc">When enabled, Yes / YesAndRightToLeft flips pages right-to-left. When disabled, always flips left-to-right.</string>
+    <string name="settings_rename_title">Default File Rename Settings</string>
+    <string name="settings_rename_template_label">Default template</string>
+    <string name="settings_rename_template_help">Available: {series}, {issue}, {volume}, {year}, {title}, {publisher}</string>
+    <string name="settings_rename_padding_label">Issue 0-padding</string>
+    <string name="settings_rename_cleanup">Clean empty brackets &amp; spaces</string>
+    <string name="settings_language_title">Language</string>
+    <string name="settings_language_desc">Choose the display language for the app.</string>
+    <string name="settings_language_system">System</string>
+    <string name="settings_about_title">About</string>
+    <string name="settings_license_cd">View MIT License</string>
+    <string name="settings_about_desc">An offline Android app to edit and manage comic CBZ metadata (ComicInfo.xml).\n• Works completely offline with no internet permission\n• Edit tags, page attributes, bookmarks, and preview pages\n• Import external image folders into CBZ archives\n• Configurable ZIP compression levels and batch tag/rename/recompress tools</string>
+
+    <!-- Core enum / summary labels -->
+    <string name="page_type_front_cover">Front Cover</string>
+    <string name="page_type_inner_cover">Inner Cover</string>
+    <string name="page_type_roundup">Roundup</string>
+    <string name="page_type_story">Story</string>
+    <string name="page_type_advertisement">Advertisement</string>
+    <string name="page_type_editorial">Editorial</string>
+    <string name="page_type_letters">Letters</string>
+    <string name="page_type_preview">Preview</string>
+    <string name="page_type_back_cover">Back Cover</string>
+    <string name="page_type_other">Other</string>
+    <string name="page_type_deleted">Deleted</string>
+
+    <string name="compression_opt_keep">Keep Original</string>
+    <string name="compression_opt_store">0 - Store</string>
+    <string name="compression_opt_1">1 - Fastest</string>
+    <string name="compression_opt_6">6 - Standard</string>
+    <string name="compression_opt_9">9 - Maximum</string>
+    <string name="compression_opt_n">Level %1$d</string>
+
+    <string name="compression_summary_store">Store</string>
+    <string name="compression_summary_mixed">Mixed (Store/Deflate)</string>
+    <string name="compression_summary_none">None</string>
+
+    <string name="rename_preset_default">Default: Series #001 (2024).cbz</string>
+    <string name="rename_preset_kr_vol">Korean Vol: Series 001권 (2024).cbz</string>
+    <string name="rename_preset_volume">With Volume: Series v01 #001 (2024).cbz</string>
+    <string name="rename_preset_title">With Title: Series #001 - Title.cbz</string>
+    <string name="rename_preset_simple">Simple: Series 001.cbz</string>
+
+    <!-- ViewModel & Repository messages -->
+    <string name="progress_scanning_folder">Scanning CBZ folder…</string>
+    <string name="msg_folder_loaded">Loaded %1$d CBZ files.</string>
+    <string name="msg_folder_open_failed">Failed to open folder: %1$s</string>
+    <string name="progress_reading_files">Reading CBZ files…</string>
+    <string name="msg_files_added">Added %1$d CBZ files.</string>
+    <string name="progress_opening_file">Opening CBZ file…</string>
+    <string name="msg_file_open_failed">Failed to open file: %1$s</string>
+    <string name="msg_filename_parsed">Extracted series/number/year from filename.</string>
+    <string name="progress_saving_compressing">Saving tags &amp; compressing…</string>
+    <string name="progress_saving_tags">Saving tags…</string>
+    <string name="msg_save_complete">Saved (%1$s → %2$s)</string>
+    <string name="msg_save_failed">Save failed: %1$s</string>
+    <string name="progress_deleting_xml">Deleting ComicInfo.xml…</string>
+    <string name="msg_xml_deleted">Deleted ComicInfo.xml metadata.</string>
+    <string name="msg_xml_delete_failed">Failed to delete tags: %1$s</string>
+    <string name="progress_renaming_file">Renaming file…</string>
+    <string name="msg_rename_complete">Renamed: %1$s</string>
+    <string name="msg_rename_failed">Rename failed (permission denied or duplicate filename)</string>
+    <string name="external_folder_fallback">External Folder</string>
+    <string name="selected_folder_fallback">Selected Folder</string>
+    <string name="msg_external_path_set">External import path set: %1$s</string>
+    <string name="msg_external_path_cleared">External import path cleared.</string>
+    <string name="msg_external_path_required">Please select an external import path first.</string>
+    <string name="progress_scanning_external">Scanning external folder…</string>
+    <string name="msg_external_none_found">No image folders found in %1$s.</string>
+    <string name="msg_external_scan_failed">Failed to scan external folder: %1$s</string>
+    <string name="progress_importing_external">Importing external files (%1$d/%2$d)</string>
+    <string name="progress_preparing_cbz">Preparing %1$s.cbz…</string>
+    <string name="msg_import_complete">Import complete: %1$d/%2$d (Store)</string>
+    <string name="msg_import_partial_error"> · Partial error: %1$s</string>
+    <string name="progress_batch_compressing">Batch compressing (%1$d/%2$d)</string>
+    <string name="msg_batch_compress_done">Batch compress complete: %1$d/%2$d (%3$s → %4$s)</string>
+    <string name="progress_batch_saving_tags">Batch saving tags (%1$d/%2$d)</string>
+    <string name="msg_batch_tags_done">Batch tag save complete: %1$d/%2$d</string>
+    <string name="progress_batch_parsing">Parsing filenames &amp; saving (%1$d/%2$d)</string>
+    <string name="msg_batch_parse_done">Filename parse complete: %1$d/%2$d</string>
+    <string name="progress_batch_renaming">Batch renaming (%1$d/%2$d)</string>
+    <string name="msg_batch_rename_done">Batch rename complete: %1$d/%2$d</string>
+    <string name="msg_batch_rename_skipped">skipped %1$d</string>
+    <string name="msg_batch_rename_failed">failed %1$d</string>
+
+    <string name="err_cannot_open_file">Cannot open file: %1$s</string>
+    <string name="err_no_images_in_folder">No images found in folder \'%1$s\'.</string>
+    <string name="err_cannot_read_image">Cannot read image file: %1$s</string>
+    <string name="err_cannot_create_cbz">Cannot create CBZ file in target folder: %1$s</string>
+    <string name="err_no_write_permission">No write permission for file: %1$s</string>
 </resources>

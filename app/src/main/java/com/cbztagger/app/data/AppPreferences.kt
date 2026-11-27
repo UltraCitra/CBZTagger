@@ -18,11 +18,12 @@ data class AppSettings(
     val deleteExternalSourceAfterImport: Boolean = false,
     val showPageListThumbnails: Boolean = false,
     val previewFollowMangaDirection: Boolean = true,
+    val appLanguage: String = AppLanguage.SYSTEM,
 )
 
 class AppPreferences(context: Context) {
     private val prefs: SharedPreferences =
-        context.getSharedPreferences("comictag_mobile_prefs", Context.MODE_PRIVATE)
+        context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
 
     fun load(): AppSettings {
         val zipLevel = prefs.getInt(KEY_ZIP_LEVEL, -1).coerceIn(-1, 9)
@@ -42,6 +43,7 @@ class AppPreferences(context: Context) {
             deleteExternalSourceAfterImport = prefs.getBoolean(KEY_DELETE_EXTERNAL_SOURCE, false),
             showPageListThumbnails = prefs.getBoolean(KEY_SHOW_PAGE_LIST_THUMBNAILS, false),
             previewFollowMangaDirection = prefs.getBoolean(KEY_PREVIEW_FOLLOW_MANGA_DIR, true),
+            appLanguage = AppLanguage.normalize(prefs.getString(KEY_APP_LANGUAGE, AppLanguage.SYSTEM)),
         )
     }
 
@@ -67,10 +69,13 @@ class AppPreferences(context: Context) {
             .putBoolean(KEY_DELETE_EXTERNAL_SOURCE, settings.deleteExternalSourceAfterImport)
             .putBoolean(KEY_SHOW_PAGE_LIST_THUMBNAILS, settings.showPageListThumbnails)
             .putBoolean(KEY_PREVIEW_FOLLOW_MANGA_DIR, settings.previewFollowMangaDirection)
+            .putString(KEY_APP_LANGUAGE, AppLanguage.normalize(settings.appLanguage))
             .commit()
     }
 
     companion object {
+        const val PREFS_NAME = "comictag_mobile_prefs"
+        const val KEY_APP_LANGUAGE = "app_language"
         private const val KEY_ZIP_LEVEL = "zip_compression_level"
         private const val KEY_LAST_SLIDER_LEVEL = "last_compression_slider_level"
         private const val KEY_LAST_BATCH_COMPRESS_LEVEL = "last_batch_compress_level"

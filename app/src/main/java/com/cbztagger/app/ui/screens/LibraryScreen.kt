@@ -74,9 +74,11 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import com.cbztagger.app.R
 import com.cbztagger.app.core.BatchTagPatch
 import com.cbztagger.app.core.FileRenamer
 import com.cbztagger.app.core.ZipCompressionOption
@@ -87,6 +89,8 @@ import com.cbztagger.app.ui.components.AuthorCreditInput
 import com.cbztagger.app.ui.components.MangaSelectorRow
 import com.cbztagger.app.ui.components.ZipCompressionControl
 import com.cbztagger.app.ui.components.ZipCompressionSlider
+import com.cbztagger.app.ui.components.localizeCompressionSummary
+import com.cbztagger.app.ui.components.localizedLabel
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -114,15 +118,15 @@ fun LibraryScreen(
         topBar = {
             if (state.isSelectionMode) {
                 TopAppBar(
-                    title = { Text("${state.selectedUris.size}개 선택됨") },
+                    title = { Text(stringResource(R.string.library_selected_count, state.selectedUris.size)) },
                     navigationIcon = {
                         IconButton(onClick = onClearSelection) {
-                            Icon(Icons.Default.Close, contentDescription = "선택 해제")
+                            Icon(Icons.Default.Close, contentDescription = stringResource(R.string.action_deselect_all))
                         }
                     },
                     actions = {
                         IconButton(onClick = onSelectAll) {
-                            Icon(Icons.Default.SelectAll, contentDescription = "전체 선택")
+                            Icon(Icons.Default.SelectAll, contentDescription = stringResource(R.string.action_select_all))
                         }
                     },
                 )
@@ -137,7 +141,10 @@ fun LibraryScreen(
                                 overflow = TextOverflow.Ellipsis,
                             )
                             Text(
-                                text = "기본 압축: ${ZipCompressionOption.fromLevel(state.settings.zipCompressionLevel).label}",
+                                text = stringResource(
+                                    R.string.library_default_compression,
+                                    ZipCompressionOption.fromLevel(state.settings.zipCompressionLevel).localizedLabel(),
+                                ),
                                 style = MaterialTheme.typography.labelSmall,
                                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                             )
@@ -145,16 +152,16 @@ fun LibraryScreen(
                     },
                     actions = {
                         IconButton(onClick = onPickFolder) {
-                            Icon(Icons.Default.FolderOpen, contentDescription = "폴더 열기")
+                            Icon(Icons.Default.FolderOpen, contentDescription = stringResource(R.string.library_cd_open_folder))
                         }
                         IconButton(onClick = onPickFiles) {
-                            Icon(Icons.Default.Add, contentDescription = "CBZ 파일 추가")
+                            Icon(Icons.Default.Add, contentDescription = stringResource(R.string.library_cd_add_files))
                         }
                         IconButton(onClick = onImportExternal) {
-                            Icon(Icons.Default.LibraryAdd, contentDescription = "외부 파일 불러오기")
+                            Icon(Icons.Default.LibraryAdd, contentDescription = stringResource(R.string.library_cd_import_external))
                         }
                         IconButton(onClick = onOpenSettings) {
-                            Icon(Icons.Default.Settings, contentDescription = "설정")
+                            Icon(Icons.Default.Settings, contentDescription = stringResource(R.string.library_cd_settings))
                         }
                     },
                 )
@@ -167,25 +174,25 @@ fun LibraryScreen(
                         selected = false,
                         onClick = { showBatchCompress = true },
                         icon = { Icon(Icons.Default.Compress, contentDescription = null) },
-                        label = { Text("일괄 압축") },
+                        label = { Text(stringResource(R.string.library_nav_batch_compress)) },
                     )
                     NavigationBarItem(
                         selected = false,
                         onClick = { showBatchTags = true },
                         icon = { Icon(Icons.Default.Edit, contentDescription = null) },
-                        label = { Text("일괄 태그") },
+                        label = { Text(stringResource(R.string.library_nav_batch_tags)) },
                     )
                     NavigationBarItem(
                         selected = false,
                         onClick = { showBatchParse = true },
                         icon = { Icon(Icons.Default.AutoFixHigh, contentDescription = null) },
-                        label = { Text("파일명 파싱") },
+                        label = { Text(stringResource(R.string.library_nav_batch_parse)) },
                     )
                     NavigationBarItem(
                         selected = false,
                         onClick = { showBatchRename = true },
                         icon = { Icon(Icons.Default.DriveFileRenameOutline, contentDescription = null) },
-                        label = { Text("일괄 리네임") },
+                        label = { Text(stringResource(R.string.library_nav_batch_rename)) },
                     )
                 }
             }
@@ -302,13 +309,13 @@ private fun EmptyLibraryView(
         )
         Spacer(Modifier.height(16.dp))
         Text(
-            text = "오프라인 CBZ 태그 & 압축 도구",
+            text = stringResource(R.string.library_empty_title),
             style = MaterialTheme.typography.titleLarge,
             fontWeight = FontWeight.Bold,
         )
         Spacer(Modifier.height(8.dp))
         Text(
-            text = "폴더 또는 CBZ 파일을 열어 ComicInfo.xml 태그를 편집하고 ZIP 압축 단계(0~9)를 조절하세요.",
+            text = stringResource(R.string.library_empty_desc),
             style = MaterialTheme.typography.bodyMedium,
             color = MaterialTheme.colorScheme.onSurfaceVariant,
         )
@@ -316,19 +323,19 @@ private fun EmptyLibraryView(
         Button(onClick = onPickFolder, modifier = Modifier.fillMaxWidth()) {
             Icon(Icons.Default.FolderOpen, contentDescription = null)
             Spacer(Modifier.width(8.dp))
-            Text("CBZ 폴더 열기")
+            Text(stringResource(R.string.library_btn_open_folder))
         }
         Spacer(Modifier.height(10.dp))
         OutlinedButton(onClick = onPickFiles, modifier = Modifier.fillMaxWidth()) {
             Icon(Icons.Default.Add, contentDescription = null)
             Spacer(Modifier.width(8.dp))
-            Text("CBZ 파일 선택")
+            Text(stringResource(R.string.library_btn_pick_files))
         }
         Spacer(Modifier.height(10.dp))
         OutlinedButton(onClick = onImportExternal, modifier = Modifier.fillMaxWidth()) {
             Icon(Icons.Default.LibraryAdd, contentDescription = null)
             Spacer(Modifier.width(8.dp))
-            Text("외부 폴더에서 CBZ 불러오기")
+            Text(stringResource(R.string.library_btn_import_external))
         }
     }
 }
@@ -400,7 +407,7 @@ private fun CbzItemCard(
                 )
                 Spacer(Modifier.height(2.dp))
                 Text(
-                    text = item.comicInfo.formatLibraryMetaLine(),
+                    text = item.comicInfo.formatLibraryMetaLine(emptyFallback = stringResource(R.string.no_metadata)),
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                     maxLines = 1,
@@ -412,12 +419,12 @@ private fun CbzItemCard(
                     verticalAlignment = Alignment.CenterVertically,
                 ) {
                     SmallBadge(
-                        text = if (item.hasComicInfo) "ComicInfo" else "태그 없음",
+                        text = if (item.hasComicInfo) "ComicInfo" else stringResource(R.string.library_no_tags),
                         highlighted = item.hasComicInfo,
                     )
                     SmallBadge(text = "${item.pageCount}p", highlighted = false)
                     SmallBadge(text = MainViewModel.formatBytes(item.sizeBytes), highlighted = false)
-                    SmallBadge(text = item.compressionSummary, highlighted = false)
+                    SmallBadge(text = localizeCompressionSummary(item.compressionSummary), highlighted = false)
                 }
             }
         }
@@ -458,11 +465,11 @@ private fun BatchCompressDialog(
 
     AlertDialog(
         onDismissRequest = onDismiss,
-        title = { Text("일괄 ZIP 압축 변환 ($count 개)") },
+        title = { Text(stringResource(R.string.batch_compress_title, count)) },
         text = {
             Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
                 Text(
-                    "선택한 CBZ 파일의 모든 이미지를 지정한 ZIP 압축 단계(0~9)로 다시 압축합니다.",
+                    stringResource(R.string.batch_compress_desc),
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
@@ -473,10 +480,10 @@ private fun BatchCompressDialog(
             }
         },
         confirmButton = {
-            Button(onClick = { onConfirm(selectedLevel) }) { Text("변환 시작") }
+            Button(onClick = { onConfirm(selectedLevel) }) { Text(stringResource(R.string.batch_compress_confirm)) }
         },
         dismissButton = {
-            TextButton(onClick = onDismiss) { Text("취소") }
+            TextButton(onClick = onDismiss) { Text(stringResource(R.string.action_cancel)) }
         },
     )
 }
@@ -501,7 +508,7 @@ private fun BatchTagEditDialog(
 
     AlertDialog(
         onDismissRequest = onDismiss,
-        title = { Text("일괄 태그 편집 ($count 개)") },
+        title = { Text(stringResource(R.string.batch_tags_title, count)) },
         text = {
             Column(
                 modifier = Modifier
@@ -510,13 +517,13 @@ private fun BatchTagEditDialog(
                 verticalArrangement = Arrangement.spacedBy(8.dp),
             ) {
                 Text(
-                    "입력한 항목만 일괄 덮어쓰기 됩니다. 비워둔 항목은 각 파일의 기존 태그를 유지합니다.",
+                    stringResource(R.string.batch_tags_desc),
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
-                OutlinedTextField(value = series, onValueChange = { series = it }, label = { Text("시리즈 (Series)") }, singleLine = true, modifier = Modifier.fillMaxWidth())
-                OutlinedTextField(value = publisher, onValueChange = { publisher = it }, label = { Text("출판사 (Publisher)") }, singleLine = true, modifier = Modifier.fillMaxWidth())
-                OutlinedTextField(value = genre, onValueChange = { genre = it }, label = { Text("장르 (Genre)") }, singleLine = true, modifier = Modifier.fillMaxWidth())
+                OutlinedTextField(value = series, onValueChange = { series = it }, label = { Text(stringResource(R.string.editor_field_series)) }, singleLine = true, modifier = Modifier.fillMaxWidth())
+                OutlinedTextField(value = publisher, onValueChange = { publisher = it }, label = { Text(stringResource(R.string.editor_field_publisher)) }, singleLine = true, modifier = Modifier.fillMaxWidth())
+                OutlinedTextField(value = genre, onValueChange = { genre = it }, label = { Text(stringResource(R.string.editor_field_genre_short)) }, singleLine = true, modifier = Modifier.fillMaxWidth())
                 AuthorCreditInput(
                     writer = writer,
                     penciller = penciller,
@@ -526,12 +533,12 @@ private fun BatchTagEditDialog(
                         penciller = p
                     },
                 )
-                OutlinedTextField(value = yearText, onValueChange = { yearText = it.filter(Char::isDigit) }, label = { Text("발행 연도 (Year)") }, singleLine = true, modifier = Modifier.fillMaxWidth())
-                OutlinedTextField(value = languageIso, onValueChange = { languageIso = it }, label = { Text("언어 코드 (예: ko, en, ja)") }, singleLine = true, modifier = Modifier.fillMaxWidth())
+                OutlinedTextField(value = yearText, onValueChange = { yearText = it.filter(Char::isDigit) }, label = { Text(stringResource(R.string.batch_tags_year_label)) }, singleLine = true, modifier = Modifier.fillMaxWidth())
+                OutlinedTextField(value = languageIso, onValueChange = { languageIso = it }, label = { Text(stringResource(R.string.batch_tags_lang_label)) }, singleLine = true, modifier = Modifier.fillMaxWidth())
                 MangaSelectorRow(
                     manga = manga,
                     onMangaChange = { manga = it },
-                    emptyLabel = "변경 안 함",
+                    emptyLabel = stringResource(R.string.batch_tags_keep_unchanged),
                 )
                 HorizontalDivider()
                 ZipCompressionControl(
@@ -556,10 +563,10 @@ private fun BatchTagEditDialog(
                     )
                     onConfirm(patch, compressionLevel)
                 },
-            ) { Text("일괄 적용") }
+            ) { Text(stringResource(R.string.batch_tags_confirm)) }
         },
         dismissButton = {
-            TextButton(onClick = onDismiss) { Text("취소") }
+            TextButton(onClick = onDismiss) { Text(stringResource(R.string.action_cancel)) }
         },
     )
 }
@@ -577,11 +584,11 @@ private fun BatchFilenameParseDialog(
 
     AlertDialog(
         onDismissRequest = onDismiss,
-        title = { Text("일괄 파일명 파싱 ($count 개)") },
+        title = { Text(stringResource(R.string.batch_parse_title, count)) },
         text = {
             Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
                 Text(
-                    "각 CBZ 파일명에서 시리즈, 권수/이슈, 볼륨, 연도를 자동 추출하여 ComicInfo.xml에 저장합니다.",
+                    stringResource(R.string.batch_parse_desc),
                     style = MaterialTheme.typography.bodySmall,
                 )
                 Row(
@@ -589,7 +596,7 @@ private fun BatchFilenameParseDialog(
                     horizontalArrangement = Arrangement.SpaceBetween,
                     verticalAlignment = Alignment.CenterVertically,
                 ) {
-                    Text("기존 태그 값 덮어쓰기", style = MaterialTheme.typography.bodyMedium)
+                    Text(stringResource(R.string.batch_parse_overwrite), style = MaterialTheme.typography.bodyMedium)
                     Switch(checked = overwriteExisting, onCheckedChange = { overwriteExisting = it })
                 }
                 ZipCompressionControl(
@@ -600,10 +607,10 @@ private fun BatchFilenameParseDialog(
             }
         },
         confirmButton = {
-            Button(onClick = { onConfirm(overwriteExisting, compressionLevel) }) { Text("파싱 및 저장") }
+            Button(onClick = { onConfirm(overwriteExisting, compressionLevel) }) { Text(stringResource(R.string.batch_parse_confirm)) }
         },
         dismissButton = {
-            TextButton(onClick = onDismiss) { Text("취소") }
+            TextButton(onClick = onDismiss) { Text(stringResource(R.string.action_cancel)) }
         },
     )
 }
@@ -624,10 +631,11 @@ private fun BatchRenameDialog(
     var useTitleForOneshot by remember { mutableStateOf(initialUseTitleForOneshot) }
     var previewExpanded by remember { mutableStateOf(false) }
     val paddingVal = paddingText.toIntOrNull()?.coerceIn(0, 6) ?: 3
+    val skippedNoTagsText = stringResource(R.string.batch_rename_skipped_no_tags)
 
     AlertDialog(
         onDismissRequest = onDismiss,
-        title = { Text("일괄 파일명 변경 (${items.size}개)") },
+        title = { Text(stringResource(R.string.batch_rename_title, items.size)) },
         text = {
             Column(
                 modifier = Modifier
@@ -638,7 +646,7 @@ private fun BatchRenameDialog(
                 OutlinedTextField(
                     value = template,
                     onValueChange = { template = it },
-                    label = { Text("템플릿 ({series}, {issue}, {volume}, {year}, {title})") },
+                    label = { Text(stringResource(R.string.batch_rename_template_label)) },
                     singleLine = true,
                     modifier = Modifier.fillMaxWidth(),
                 )
@@ -663,13 +671,13 @@ private fun BatchRenameDialog(
                     OutlinedTextField(
                         value = paddingText,
                         onValueChange = { paddingText = it.filter(Char::isDigit).take(1) },
-                        label = { Text("0-패딩 자릿수") },
+                        label = { Text(stringResource(R.string.batch_rename_padding_label)) },
                         singleLine = true,
                         modifier = Modifier.width(120.dp),
                     )
                     Row(verticalAlignment = Alignment.CenterVertically) {
                         Checkbox(checked = smartCleanup, onCheckedChange = { smartCleanup = it })
-                        Text("빈 괄호 정리", style = MaterialTheme.typography.bodySmall)
+                        Text(stringResource(R.string.batch_rename_smart_cleanup), style = MaterialTheme.typography.bodySmall)
                     }
                 }
                 Row(
@@ -681,7 +689,7 @@ private fun BatchRenameDialog(
                         onCheckedChange = { useTitleForOneshot = it },
                     )
                     Text(
-                        text = "시리즈 없음(단권) 시 {title}을 파일명으로 사용",
+                        text = stringResource(R.string.batch_rename_oneshot_title),
                         style = MaterialTheme.typography.bodySmall,
                     )
                 }
@@ -695,20 +703,22 @@ private fun BatchRenameDialog(
                     verticalAlignment = Alignment.CenterVertically,
                 ) {
                     Text(
-                        text = "미리보기 (최대 5개)",
+                        text = stringResource(R.string.batch_rename_preview_header),
                         style = MaterialTheme.typography.labelMedium,
                         fontWeight = FontWeight.Bold,
                     )
                     Icon(
                         imageVector = if (previewExpanded) Icons.Default.ExpandLess else Icons.Default.ExpandMore,
-                        contentDescription = if (previewExpanded) "미리보기 접기" else "미리보기 펼치기",
+                        contentDescription = stringResource(
+                            if (previewExpanded) R.string.batch_rename_preview_collapse else R.string.batch_rename_preview_expand,
+                        ),
                     )
                 }
                 AnimatedVisibility(visible = previewExpanded) {
                     Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
                         items.take(5).forEach { item ->
                             val nextName = if (!FileRenamer.hasMetadataForTemplate(item.comicInfo, template, useTitleForOneshot)) {
-                                "(태그 없음 - 건너뜀)"
+                                skippedNoTagsText
                             } else {
                                 FileRenamer.formatFilename(
                                     info = item.comicInfo,
@@ -729,10 +739,12 @@ private fun BatchRenameDialog(
             }
         },
         confirmButton = {
-            Button(onClick = { onConfirm(template, paddingVal, smartCleanup, useTitleForOneshot) }) { Text("이름 변경") }
+            Button(onClick = { onConfirm(template, paddingVal, smartCleanup, useTitleForOneshot) }) {
+                Text(stringResource(R.string.action_rename))
+            }
         },
         dismissButton = {
-            TextButton(onClick = onDismiss) { Text("취소") }
+            TextButton(onClick = onDismiss) { Text(stringResource(R.string.action_cancel)) }
         },
     )
 }

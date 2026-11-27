@@ -32,8 +32,10 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
-import androidx.compose.material3.RadioButton
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SegmentedButton
+import androidx.compose.material3.SegmentedButtonDefaults
+import androidx.compose.material3.SingleChoiceSegmentedButtonRow
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
@@ -48,18 +50,23 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import com.cbztagger.app.R
 import com.cbztagger.app.core.FileRenamer
-import com.cbztagger.app.core.ZipCompressionOption
+import com.cbztagger.app.data.AppLanguage
 import com.cbztagger.app.data.AppSettings
 import com.cbztagger.app.ui.components.ZipCompressionControl
+import com.cbztagger.app.ui.components.localizedRenamePresetLabel
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun SettingsScreen(
     settings: AppSettings,
     onUpdateSettings: (AppSettings) -> Unit,
+    onChangeLanguage: (String) -> Unit,
     onPickExternalFolder: () -> Unit,
     onClearExternalFolder: () -> Unit,
     onBack: () -> Unit,
@@ -83,10 +90,10 @@ fun SettingsScreen(
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("설정") },
+                title = { Text(stringResource(R.string.settings_title)) },
                 navigationIcon = {
                     IconButton(onClick = onBack) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "뒤로")
+                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = stringResource(R.string.action_back))
                     }
                 },
             )
@@ -104,13 +111,13 @@ fun SettingsScreen(
             Card(modifier = Modifier.fillMaxWidth()) {
                 Column(modifier = Modifier.padding(14.dp)) {
                     Text(
-                        text = "기본 ZIP 압축 단계 (태그 저장 시)",
+                        text = stringResource(R.string.settings_zip_title),
                         style = MaterialTheme.typography.titleMedium,
                         fontWeight = FontWeight.Bold,
                     )
                     Spacer(Modifier.height(4.dp))
                     Text(
-                        text = "태그를 저장할 때 적용할 기본 ZIP 압축 옵션입니다. 설정은 앱을 종료해도 자동으로 유지됩니다.",
+                        text = stringResource(R.string.settings_zip_desc),
                         style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                     )
@@ -140,17 +147,20 @@ fun SettingsScreen(
                     verticalArrangement = Arrangement.spacedBy(8.dp),
                 ) {
                     Text(
-                        text = "외부 파일 불러오기 경로",
+                        text = stringResource(R.string.settings_external_title),
                         style = MaterialTheme.typography.titleMedium,
                         fontWeight = FontWeight.Bold,
                     )
                     Text(
-                        text = "설정된 경로/폴더명/이미지 파일들 구조의 폴더를 폴더명.cbz(무압축 보관)로 불러옵니다.",
+                        text = stringResource(R.string.settings_external_desc),
                         style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                     )
                     Text(
-                        text = "현재 경로: ${settings.externalImportFolderName ?: "설정되지 않음"}",
+                        text = stringResource(
+                            R.string.settings_external_current,
+                            settings.externalImportFolderName ?: stringResource(R.string.settings_external_unset),
+                        ),
                         style = MaterialTheme.typography.bodyMedium,
                         fontWeight = FontWeight.Medium,
                     )
@@ -161,11 +171,19 @@ fun SettingsScreen(
                         OutlinedButton(onClick = onPickExternalFolder) {
                             Icon(Icons.Default.FolderOpen, contentDescription = null)
                             Spacer(Modifier.width(6.dp))
-                            Text(if (settings.externalImportFolderUri.isNullOrBlank()) "경로 선택" else "경로 변경")
+                            Text(
+                                stringResource(
+                                    if (settings.externalImportFolderUri.isNullOrBlank()) {
+                                        R.string.settings_external_pick
+                                    } else {
+                                        R.string.settings_external_change
+                                    },
+                                ),
+                            )
                         }
                         if (!settings.externalImportFolderUri.isNullOrBlank()) {
                             TextButton(onClick = onClearExternalFolder) {
-                                Text("초기화")
+                                Text(stringResource(R.string.action_reset))
                             }
                         }
                     }
@@ -190,12 +208,12 @@ fun SettingsScreen(
                         )
                         Column(modifier = Modifier.weight(1f)) {
                             Text(
-                                text = "외부파일을 성공적으로 불러온 후 원본파일을 삭제합니다",
+                                text = stringResource(R.string.settings_external_delete_title),
                                 style = MaterialTheme.typography.bodySmall,
                                 fontWeight = FontWeight.Medium,
                             )
                             Text(
-                                text = "불러오기에 성공한 원본 폴더만 삭제하며, 실패한 항목은 유지합니다.",
+                                text = stringResource(R.string.settings_external_delete_desc),
                                 style = MaterialTheme.typography.labelSmall,
                                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                             )
@@ -210,7 +228,7 @@ fun SettingsScreen(
                     verticalArrangement = Arrangement.spacedBy(10.dp),
                 ) {
                     Text(
-                        text = "페이지 목록 및 미리보기 설정",
+                        text = stringResource(R.string.settings_pages_title),
                         style = MaterialTheme.typography.titleMedium,
                         fontWeight = FontWeight.Bold,
                     )
@@ -221,12 +239,12 @@ fun SettingsScreen(
                     ) {
                         Column(modifier = Modifier.weight(1f).padding(end = 12.dp)) {
                             Text(
-                                text = "페이지 목록에서 이미지 보이기",
+                                text = stringResource(R.string.settings_thumbnails_title),
                                 style = MaterialTheme.typography.bodyMedium,
                                 fontWeight = FontWeight.Medium,
                             )
                             Text(
-                                text = "메타데이터 편집 > 페이지 탭 목록에 썸네일을 표시합니다. (캐시되지 않음)",
+                                text = stringResource(R.string.settings_thumbnails_desc),
                                 style = MaterialTheme.typography.bodySmall,
                                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                             )
@@ -246,12 +264,12 @@ fun SettingsScreen(
                     ) {
                         Column(modifier = Modifier.weight(1f).padding(end = 12.dp)) {
                             Text(
-                                text = "미리보기 이동 시 Manga 태그 방향 따르기",
+                                text = stringResource(R.string.settings_manga_dir_title),
                                 style = MaterialTheme.typography.bodyMedium,
                                 fontWeight = FontWeight.Medium,
                             )
                             Text(
-                                text = "켜면 Manga 태그가 Yes / YesAndRightToLeft일 때 우→좌(오른쪽에서 왼쪽)로 넘깁니다. 끄면 항상 좌→우로 이동합니다.",
+                                text = stringResource(R.string.settings_manga_dir_desc),
                                 style = MaterialTheme.typography.bodySmall,
                                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                             )
@@ -272,15 +290,15 @@ fun SettingsScreen(
                     verticalArrangement = Arrangement.spacedBy(10.dp),
                 ) {
                     Text(
-                        text = "파일명 변경 (Rename) 기본 설정",
+                        text = stringResource(R.string.settings_rename_title),
                         style = MaterialTheme.typography.titleMedium,
                         fontWeight = FontWeight.Bold,
                     )
                     OutlinedTextField(
                         value = settings.renameTemplate,
                         onValueChange = { onUpdateSettings(settings.copy(renameTemplate = it)) },
-                        label = { Text("기본 템플릿") },
-                        supportingText = { Text("사용 가능: {series}, {issue}, {volume}, {year}, {title}, {publisher}") },
+                        label = { Text(stringResource(R.string.settings_rename_template_label)) },
+                        supportingText = { Text(stringResource(R.string.settings_rename_template_help)) },
                         singleLine = true,
                         modifier = Modifier.fillMaxWidth(),
                     )
@@ -288,7 +306,7 @@ fun SettingsScreen(
                         FileRenamer.PRESET_TEMPLATES.forEach { (tpl, desc) ->
                             AssistChip(
                                 onClick = { onUpdateSettings(settings.copy(renameTemplate = tpl)) },
-                                label = { Text(desc) },
+                                label = { Text(localizedRenamePresetLabel(tpl, desc)) },
                             )
                         }
                     }
@@ -303,7 +321,7 @@ fun SettingsScreen(
                                 val parsed = raw.filter(Char::isDigit).take(1).toIntOrNull() ?: 0
                                 onUpdateSettings(settings.copy(issuePadding = parsed.coerceIn(0, 6)))
                             },
-                            label = { Text("권수 0-패딩") },
+                            label = { Text(stringResource(R.string.settings_rename_padding_label)) },
                             singleLine = true,
                             modifier = Modifier.width(120.dp),
                         )
@@ -312,7 +330,10 @@ fun SettingsScreen(
                                 checked = settings.smartCleanup,
                                 onCheckedChange = { onUpdateSettings(settings.copy(smartCleanup = it)) },
                             )
-                            Text("빈 괄호·공백 자동 정리", style = MaterialTheme.typography.bodySmall)
+                            Text(
+                                text = stringResource(R.string.settings_rename_cleanup),
+                                style = MaterialTheme.typography.bodySmall,
+                            )
                         }
                     }
                     Row(
@@ -330,9 +351,53 @@ fun SettingsScreen(
                             onCheckedChange = { onUpdateSettings(settings.copy(useTitleForOneshotRename = it)) },
                         )
                         Text(
-                            text = "시리즈 없음(단권) 시 {title}을 파일명으로 사용",
+                            text = stringResource(R.string.batch_rename_oneshot_title),
                             style = MaterialTheme.typography.bodySmall,
                         )
+                    }
+                }
+            }
+
+            Card(modifier = Modifier.fillMaxWidth()) {
+                Column(
+                    modifier = Modifier.padding(14.dp),
+                    verticalArrangement = Arrangement.spacedBy(8.dp),
+                ) {
+                    Text(
+                        text = stringResource(R.string.settings_language_title),
+                        style = MaterialTheme.typography.titleMedium,
+                        fontWeight = FontWeight.Bold,
+                    )
+                    Text(
+                        text = stringResource(R.string.settings_language_desc),
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    )
+                    val languageOptions = listOf(
+                        AppLanguage.SYSTEM to stringResource(R.string.settings_language_system),
+                        AppLanguage.KOREAN to "한국어",
+                        AppLanguage.ENGLISH to "English",
+                    )
+                    SingleChoiceSegmentedButtonRow(modifier = Modifier.fillMaxWidth()) {
+                        languageOptions.forEachIndexed { index, (code, label) ->
+                            SegmentedButton(
+                                selected = settings.appLanguage == code,
+                                onClick = {
+                                    if (settings.appLanguage != code) {
+                                        onChangeLanguage(code)
+                                    }
+                                },
+                                shape = SegmentedButtonDefaults.itemShape(index = index, count = languageOptions.size),
+                                modifier = Modifier.height(40.dp),
+                            ) {
+                                Text(
+                                    text = label,
+                                    maxLines = 1,
+                                    softWrap = false,
+                                    overflow = TextOverflow.Ellipsis,
+                                )
+                            }
+                        }
                     }
                 }
             }
@@ -348,7 +413,7 @@ fun SettingsScreen(
                         verticalAlignment = Alignment.CenterVertically,
                     ) {
                         Text(
-                            text = "앱 정보",
+                            text = stringResource(R.string.settings_about_title),
                             style = MaterialTheme.typography.titleMedium,
                             fontWeight = FontWeight.Bold,
                         )
@@ -378,7 +443,7 @@ fun SettingsScreen(
                                 ) {
                                     Icon(
                                         imageVector = Icons.Default.Gavel,
-                                        contentDescription = "MIT 라이선스 보기",
+                                        contentDescription = stringResource(R.string.settings_license_cd),
                                         modifier = Modifier.size(12.dp),
                                     )
                                     Text(
@@ -392,16 +457,12 @@ fun SettingsScreen(
                     }
                     HorizontalDivider(modifier = Modifier.padding(vertical = 4.dp))
                     Text(
-                        text = "CBZTagger",
+                        text = stringResource(R.string.app_name),
                         style = MaterialTheme.typography.bodyMedium,
                         fontWeight = FontWeight.SemiBold,
                     )
                     Text(
-                        text = "만화 CBZ 파일의 메타데이터(ComicInfo.xml)를 오프라인에서 간편하게 편집하고 관리하는 앱입니다.\n" +
-                            "• 인터넷 연결 없이 기기 내에서만 안전하게 동작\n" +
-                            "• 태그·페이지 속성·북마크 편집 및 미리보기 지원\n" +
-                            "• 외부 이미지 폴더를 CBZ로 묶어 불러오기\n" +
-                            "• ZIP 압축 단계 설정 및 일괄 태그·리네임·재압축 지원",
+                        text = stringResource(R.string.settings_about_desc),
                         style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                     )
@@ -425,7 +486,7 @@ fun SettingsScreen(
             },
             confirmButton = {
                 TextButton(onClick = { showLicenseDialog = false }) {
-                    Text("닫기")
+                    Text(stringResource(R.string.action_close))
                 }
             },
         )

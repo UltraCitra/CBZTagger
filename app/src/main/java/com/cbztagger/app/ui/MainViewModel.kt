@@ -3,14 +3,18 @@ package com.cbztagger.app.ui
 import android.app.Application
 import android.graphics.Bitmap
 import android.net.Uri
+import androidx.annotation.StringRes
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
+import com.cbztagger.app.R
 import com.cbztagger.app.core.BatchTagPatch
 import com.cbztagger.app.core.ComicInfo
 import com.cbztagger.app.core.ExternalFolderImporter
 import com.cbztagger.app.core.FileRenamer
 import com.cbztagger.app.core.FilenameParser
 import com.cbztagger.app.core.NaturalOrderComparator
+import com.cbztagger.app.data.AppLanguage
+import com.cbztagger.app.data.AppLocaleHelper
 import com.cbztagger.app.data.AppPreferences
 import com.cbztagger.app.data.AppSettings
 import com.cbztagger.app.data.CbzDocumentItem
@@ -77,7 +81,17 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
     private val prefs = AppPreferences(application)
     private val repo = SafCbzRepository(application)
 
-    private val _uiState = MutableStateFlow(MainUiState(settings = prefs.load()))
+    private fun str(@StringRes resId: Int, vararg args: Any): String =
+        AppLocaleHelper.wrapContext(getApplication()).getString(resId, *args)
+
+    private val _uiState = MutableStateFlow(
+        MainUiState(
+            settings = prefs.load().let { loaded ->
+                val effective = AppLocaleHelper.resolveEffectiveLanguage(application, loaded.appLanguage)
+                if (effective != loaded.appLanguage) loaded.copy(appLanguage = effective) else loaded
+            },
+        ),
+    )
     val uiState: StateFlow<MainUiState> = _uiState.asStateFlow()
 
     init {
@@ -85,6 +99,13 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
         if (!lastFolder.isNullOrBlank()) {
             openFolder(Uri.parse(lastFolder), persist = false)
         }
+    }
+
+    fun updateAppLanguage(languageCode: String) {
+        val normalized = AppLanguage.normalize(languageCode)
+        val updated = _uiState.value.settings.copy(appLanguage = normalized)
+        prefs.save(updated)
+        _uiState.update { it.copy(settings = updated) }
     }
 
     fun clearStatusMessage() {
@@ -131,7 +152,7 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
         viewModelScope.launch {
             _uiState.update {
                 it.copy(
-                    progress = ProgressState("CBZ 폴더 스캔 중..."),
+                    progress = ProgressState(str(R.string.progress_scanning_folder)),
                     selectedUris = emptySet(),
                 )
             }
@@ -146,7 +167,7 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
                             currentFolderName = folderName,
                             items = loaded,
                             progress = null,
-                            statusMessage = "CBZ ${loaded.size}개 파일을 불러왔습니다.",
+                            statusMessage = str(R.string.msg_folder_loaded, loaded.size),
                         )
                     }
                     loadThumbnailsFor(loaded)
@@ -155,7 +176,7 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
                     _uiState.update {
                         it.copy(
                             progress = null,
-                            statusMessage = "폴더 열기 실패: ${err.localizedMessage ?: err.message}",
+                            statusMessage = str(R.string.msg_folder_open_failed, err.localizedMessage ?: err.message ?: ""),
                         )
                     }
                 }
@@ -165,12 +186,12 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
     fun addIndividualFiles(uris: List<Uri>) {
         if (uris.isEmpty()) return
         viewModelScope.launch {
-            _uiState.update { it.copy(progress = ProgressState("CBZ 파일 읽는 중...", total = uris.size)) }
+            _uiState.update { it.copy(progress = ProgressState(str(R.string.progress_reading_files), total = uris.size)) }
             val existing = _uiState.value.items.associateBy { it.uri }.toMutableMap()
             var added = 0
             uris.forEachIndexed { index, uri ->
                 _uiState.update {
-                    it.copy(progress = ProgressState("CBZ 파일 읽는 중...", current = index + 1, total = uris.size))
+                    it.copy(progress = ProgressState(str(R.string.progress_reading_files), current = index + 1, total = uris.size))
                 }
                 runCatching { repo.inspectUri(uri) }
                     .onSuccess { item ->
@@ -183,7 +204,7 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
                 it.copy(
                     items = list,
                     progress = null,
-                    statusMessage = "CBZ ${added}개 파일을 추가했습니다.",
+                    statusMessage = str(R.string.msg_files_added, added),
                 )
             }
             loadThumbnailsFor(list)
@@ -192,7 +213,7 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
 
     fun openSingleFromIntent(uri: Uri) {
         viewModelScope.launch {
-            _uiState.update { it.copy(progress = ProgressState("CBZ 파일 여는 중...")) }
+            _uiState.update { it.copy(progress = ProgressState(str(R.string.progress_opening_file))) }
             runCatching { repo.inspectUri(uri) }
                 .onSuccess { item ->
                     val merged = (_uiState.value.items.filterNot { it.uri == uri }) + item
@@ -204,7 +225,7 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
                     _uiState.update {
                         it.copy(
                             progress = null,
-                            statusMessage = "파일 열기 실패: ${err.localizedMessage ?: err.message}",
+                            statusMessage = str(R.string.msg_file_open_failed, err.localizedMessage ?: err.message ?: ""),
                         )
                     }
                 }
@@ -284,7 +305,7 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
         _uiState.update {
             it.copy(
                 editor = ed.copy(draft = updated, isDirty = true),
-                statusMessage = "파일명에서 시리즈/권수/연도를 추출했습니다.",
+                statusMessage = str(R.string.msg_filename_parsed),
             )
         }
     }
@@ -293,7 +314,7 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
         val ed = _uiState.value.editor ?: return
         viewModelScope.launch {
             _uiState.update {
-                it.copy(progress = ProgressState("태그 저장 및 압축 중...", detail = ed.item.displayName))
+                it.copy(progress = ProgressState(str(R.string.progress_saving_compressing), detail = ed.item.displayName))
             }
             runCatching {
                 val res = repo.saveComicInfo(
@@ -304,7 +325,7 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
                     _uiState.update { s ->
                         s.copy(
                             progress = ProgressState(
-                                title = "태그 저장 중...",
+                                title = str(R.string.progress_saving_tags),
                                 detail = "${ed.item.displayName} ($done/$total)",
                                 current = done,
                                 total = total,
@@ -324,14 +345,14 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
                         items = state.items.map { if (it.uri == refreshed.uri) refreshed else it },
                         editor = ed.copy(item = refreshed, draft = refreshed.comicInfo, isDirty = false),
                         progress = null,
-                        statusMessage = "저장 완료 (${formatBytes(res.beforeBytes)} → ${formatBytes(res.afterBytes)})",
+                        statusMessage = str(R.string.msg_save_complete, formatBytes(res.beforeBytes), formatBytes(res.afterBytes)),
                     )
                 }
             }.onFailure { err ->
                 _uiState.update {
                     it.copy(
                         progress = null,
-                        statusMessage = "저장 실패: ${err.localizedMessage ?: err.message}",
+                        statusMessage = str(R.string.msg_save_failed, err.localizedMessage ?: err.message ?: ""),
                     )
                 }
             }
@@ -341,7 +362,7 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
     fun deleteEditorComicInfo() {
         val ed = _uiState.value.editor ?: return
         viewModelScope.launch {
-            _uiState.update { it.copy(progress = ProgressState("ComicInfo.xml 삭제 중...", detail = ed.item.displayName)) }
+            _uiState.update { it.copy(progress = ProgressState(str(R.string.progress_deleting_xml), detail = ed.item.displayName)) }
             runCatching {
                 repo.removeComicInfo(ed.item.uri, compressionLevel = -1)
                 repo.inspectUri(ed.item.uri, ed.item.displayName)
@@ -351,14 +372,14 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
                         items = state.items.map { if (it.uri == refreshed.uri) refreshed else it },
                         editor = ed.copy(item = refreshed, draft = refreshed.comicInfo, isDirty = false),
                         progress = null,
-                        statusMessage = "ComicInfo.xml 태그를 삭제했습니다.",
+                        statusMessage = str(R.string.msg_xml_deleted),
                     )
                 }
             }.onFailure { err ->
                 _uiState.update {
                     it.copy(
                         progress = null,
-                        statusMessage = "태그 삭제 실패: ${err.localizedMessage ?: err.message}",
+                        statusMessage = str(R.string.msg_xml_delete_failed, err.localizedMessage ?: err.message ?: ""),
                     )
                 }
             }
@@ -368,7 +389,7 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
     fun renameEditorFile(newName: String) {
         val ed = _uiState.value.editor ?: return
         viewModelScope.launch {
-            _uiState.update { it.copy(progress = ProgressState("파일 이름 변경 중...", detail = newName)) }
+            _uiState.update { it.copy(progress = ProgressState(str(R.string.progress_renaming_file), detail = newName)) }
             val renamed = repo.renameDocument(ed.item.uri, newName)
             if (renamed != null) {
                 val (renamedUri, actualName) = renamed
@@ -388,14 +409,14 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
                         thumbnails = nextThumbs,
                         editor = ed.copy(item = refreshed),
                         progress = null,
-                        statusMessage = "이름 변경 완료: $actualName",
+                        statusMessage = str(R.string.msg_rename_complete, actualName),
                     )
                 }
             } else {
                 _uiState.update {
                     it.copy(
                         progress = null,
-                        statusMessage = "파일 이름 변경 실패 (권한 또는 동일 파일명 존재)",
+                        statusMessage = str(R.string.msg_rename_failed),
                     )
                 }
             }
@@ -413,7 +434,7 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
     fun setExternalImportFolder(treeUri: Uri, openImportDialogAfter: Boolean = false) {
         viewModelScope.launch {
             val folderName = runCatching { repo.resolveFolderDisplayName(treeUri) }
-                .getOrElse { "외부 폴더" }
+                .getOrElse { str(R.string.external_folder_fallback) }
             val updated = _uiState.value.settings.copy(
                 externalImportFolderUri = treeUri.toString(),
                 externalImportFolderName = folderName,
@@ -422,7 +443,7 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
             _uiState.update {
                 it.copy(
                     settings = updated,
-                    statusMessage = if (openImportDialogAfter) null else "외부 불러오기 경로 설정: $folderName",
+                    statusMessage = if (openImportDialogAfter) null else str(R.string.msg_external_path_set, folderName),
                 )
             }
             if (openImportDialogAfter) {
@@ -441,7 +462,7 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
             it.copy(
                 settings = updated,
                 externalImport = null,
-                statusMessage = "외부 불러오기 경로가 초기화되었습니다.",
+                statusMessage = str(R.string.msg_external_path_cleared),
             )
         }
     }
@@ -449,7 +470,7 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
     fun openExternalImportDialog() {
         val extUriStr = _uiState.value.settings.externalImportFolderUri
         if (extUriStr.isNullOrBlank()) {
-            _uiState.update { it.copy(statusMessage = "먼저 외부 불러오기 경로를 선택해 주세요.") }
+            _uiState.update { it.copy(statusMessage = str(R.string.msg_external_path_required)) }
             return
         }
         val sourceUri = Uri.parse(extUriStr)
@@ -459,7 +480,7 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
             ?: sourceUri
 
         viewModelScope.launch {
-            _uiState.update { it.copy(progress = ProgressState("외부 폴더 스캔 중...")) }
+            _uiState.update { it.copy(progress = ProgressState(str(R.string.progress_scanning_external))) }
             runCatching {
                 val sourceName = _uiState.value.settings.externalImportFolderName
                     ?: repo.resolveFolderDisplayName(sourceUri)
@@ -492,7 +513,7 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
                         it.copy(
                             progress = null,
                             externalImport = null,
-                            statusMessage = "외부 경로(${importUi.sourceFolderName})에서 이미지가 포함된 폴더를 찾지 못했습니다.",
+                            statusMessage = str(R.string.msg_external_none_found, importUi.sourceFolderName),
                         )
                     }
                 } else {
@@ -508,7 +529,7 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
                     it.copy(
                         progress = null,
                         externalImport = null,
-                        statusMessage = "외부 폴더 스캔 실패: ${err.localizedMessage ?: err.message}",
+                        statusMessage = str(R.string.msg_external_scan_failed, err.localizedMessage ?: err.message ?: ""),
                     )
                 }
             }
@@ -563,8 +584,8 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
                 _uiState.update {
                     it.copy(
                         progress = ProgressState(
-                            title = "외부 파일 불러오는 중 (${idx + 1}/${selectedCandidates.size})",
-                            detail = "${candidate.folderName}.cbz 준비 중...",
+                            title = str(R.string.progress_importing_external, idx + 1, selectedCandidates.size),
+                            detail = str(R.string.progress_preparing_cbz, candidate.folderName),
                             current = idx,
                             total = selectedCandidates.size,
                         ),
@@ -581,7 +602,7 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
                         _uiState.update { s ->
                             s.copy(
                                 progress = ProgressState(
-                                    title = "외부 파일 불러오는 중 (${idx + 1}/${selectedCandidates.size})",
+                                    title = str(R.string.progress_importing_external, idx + 1, selectedCandidates.size),
                                     detail = "${candidate.folderName}.cbz ($done/$total)",
                                     current = done,
                                     total = total,
@@ -616,9 +637,9 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
             }
 
             val summaryMsg = buildString {
-                append("외부 불러오기 완료: ${importedItems.size}/${selectedCandidates.size}개 (무압축 보관)")
+                append(str(R.string.msg_import_complete, importedItems.size, selectedCandidates.size))
                 if (lastError != null && importedItems.size < selectedCandidates.size) {
-                    append(" · 일부 오류: $lastError")
+                    append(str(R.string.msg_import_partial_error, lastError ?: ""))
                 }
             }
 
@@ -657,7 +678,7 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
                 _uiState.update {
                     it.copy(
                         progress = ProgressState(
-                            title = "일괄 압축 중 (${idx + 1}/${targets.size})",
+                            title = str(R.string.progress_batch_compressing, idx + 1, targets.size),
                             detail = item.displayName,
                             current = idx + 1,
                             total = targets.size,
@@ -678,7 +699,13 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
                     items = it.items.map { item -> updatedMap[item.uri] ?: item },
                     selectedUris = emptySet(),
                     progress = null,
-                    statusMessage = "일괄 압축 완료: $successCount/${targets.size}개 (${formatBytes(beforeTotal)} → ${formatBytes(afterTotal)})",
+                    statusMessage = str(
+                        R.string.msg_batch_compress_done,
+                        successCount,
+                        targets.size,
+                        formatBytes(beforeTotal),
+                        formatBytes(afterTotal),
+                    ),
                 )
             }
         }
@@ -695,7 +722,7 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
                 _uiState.update {
                     it.copy(
                         progress = ProgressState(
-                            title = "일괄 태그 저장 중 (${idx + 1}/${targets.size})",
+                            title = str(R.string.progress_batch_saving_tags, idx + 1, targets.size),
                             detail = item.displayName,
                             current = idx + 1,
                             total = targets.size,
@@ -715,7 +742,7 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
                     items = it.items.map { item -> updatedMap[item.uri] ?: item },
                     selectedUris = emptySet(),
                     progress = null,
-                    statusMessage = "일괄 태그 저장 완료: $successCount/${targets.size}개",
+                    statusMessage = str(R.string.msg_batch_tags_done, successCount, targets.size),
                 )
             }
         }
@@ -732,7 +759,7 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
                 _uiState.update {
                     it.copy(
                         progress = ProgressState(
-                            title = "파일명 파싱 및 저장 중 (${idx + 1}/${targets.size})",
+                            title = str(R.string.progress_batch_parsing, idx + 1, targets.size),
                             detail = item.displayName,
                             current = idx + 1,
                             total = targets.size,
@@ -752,7 +779,7 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
                     items = it.items.map { item -> updatedMap[item.uri] ?: item },
                     selectedUris = emptySet(),
                     progress = null,
-                    statusMessage = "파일명 파싱 저장 완료: $successCount/${targets.size}개",
+                    statusMessage = str(R.string.msg_batch_parse_done, successCount, targets.size),
                 )
             }
         }
@@ -811,7 +838,7 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
                 _uiState.update {
                     it.copy(
                         progress = ProgressState(
-                            title = "일괄 이름 변경 중 (${idx + 1}/${targets.size})",
+                            title = str(R.string.progress_batch_renaming, idx + 1, targets.size),
                             detail = "${item.displayName} → $targetName",
                             current = idx + 1,
                             total = targets.size,
@@ -838,10 +865,10 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
             currentItems.sortWith(compareBy(NaturalOrderComparator) { it.displayName })
 
             val summaryMsg = buildString {
-                append("일괄 이름 변경 완료: ${renamedCount}/${targets.size}개")
+                append(str(R.string.msg_batch_rename_done, renamedCount, targets.size))
                 val extras = buildList {
-                    if (skippedCount > 0) add("건너뜀 $skippedCount")
-                    if (failedCount > 0) add("실패 $failedCount")
+                    if (skippedCount > 0) add(str(R.string.msg_batch_rename_skipped, skippedCount))
+                    if (failedCount > 0) add(str(R.string.msg_batch_rename_failed, failedCount))
                 }
                 if (extras.isNotEmpty()) {
                     append(" (${extras.joinToString(", ")})")

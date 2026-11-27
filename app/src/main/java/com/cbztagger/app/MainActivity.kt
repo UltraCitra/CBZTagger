@@ -1,6 +1,7 @@
 package com.cbztagger.app
 
 import android.app.Activity
+import android.content.Context
 import android.content.Intent
 import android.os.Bundle
 import androidx.activity.ComponentActivity
@@ -46,8 +47,10 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.cbztagger.app.data.AppLocaleHelper
 import com.cbztagger.app.ui.ActiveScreen
 import com.cbztagger.app.ui.MainViewModel
 import com.cbztagger.app.ui.ProgressState
@@ -59,6 +62,10 @@ import com.cbztagger.app.ui.theme.ComicTagTheme
 
 class MainActivity : ComponentActivity() {
     private val viewModel: MainViewModel by viewModels()
+
+    override fun attachBaseContext(newBase: Context) {
+        super.attachBaseContext(AppLocaleHelper.wrapContext(newBase))
+    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -291,6 +298,10 @@ private fun ComicTagApp(viewModel: MainViewModel) {
                 ActiveScreen.SETTINGS -> SettingsScreen(
                     settings = state.settings,
                     onUpdateSettings = { viewModel.updateSettings(it) },
+                    onChangeLanguage = { languageCode ->
+                        viewModel.updateAppLanguage(languageCode)
+                        AppLocaleHelper.applyLanguage(activity, context.applicationContext, languageCode)
+                    },
                     onPickExternalFolder = {
                         openImportDialogAfterPick = false
                         externalFolderPicker.launch(null)
@@ -337,10 +348,10 @@ private fun ComicTagApp(viewModel: MainViewModel) {
         if (showUnsavedExitConfirm) {
             AlertDialog(
                 onDismissRequest = { showUnsavedExitConfirm = false },
-                title = { Text("저장되지 않은 변경사항") },
+                title = { Text(stringResource(R.string.unsaved_changes_title)) },
                 text = {
                     Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                        Text("편집한 메타데이터가 아직 저장되지 않았습니다. 저장하고 나가시겠습니까?")
+                        Text(stringResource(R.string.unsaved_changes_message))
                         Spacer(Modifier.height(4.dp))
                         Button(
                             onClick = {
@@ -349,7 +360,7 @@ private fun ComicTagApp(viewModel: MainViewModel) {
                             },
                             modifier = Modifier.fillMaxWidth(),
                         ) {
-                            Text("저장 후 나가기")
+                            Text(stringResource(R.string.unsaved_save_and_leave))
                         }
                         OutlinedButton(
                             onClick = {
@@ -359,7 +370,7 @@ private fun ComicTagApp(viewModel: MainViewModel) {
                             modifier = Modifier.fillMaxWidth(),
                         ) {
                             Text(
-                                text = "저장하지 않고 나가기",
+                                text = stringResource(R.string.unsaved_discard_and_leave),
                                 color = MaterialTheme.colorScheme.error,
                             )
                         }
@@ -367,7 +378,7 @@ private fun ComicTagApp(viewModel: MainViewModel) {
                             onClick = { showUnsavedExitConfirm = false },
                             modifier = Modifier.fillMaxWidth(),
                         ) {
-                            Text("계속 편집")
+                            Text(stringResource(R.string.unsaved_keep_editing))
                         }
                     }
                 },
@@ -376,10 +387,11 @@ private fun ComicTagApp(viewModel: MainViewModel) {
         }
 
         if (showExitConfirm) {
+            val appName = stringResource(R.string.app_name)
             AlertDialog(
                 onDismissRequest = { showExitConfirm = false },
-                title = { Text("앱 종료") },
-                text = { Text("CBZTagger를 종료하시겠습니까?") },
+                title = { Text(stringResource(R.string.exit_app_title)) },
+                text = { Text(stringResource(R.string.exit_app_message, appName)) },
                 confirmButton = {
                     Button(
                         onClick = {
@@ -387,12 +399,12 @@ private fun ComicTagApp(viewModel: MainViewModel) {
                             activity?.finish()
                         },
                     ) {
-                        Text("종료")
+                        Text(stringResource(R.string.action_exit))
                     }
                 },
                 dismissButton = {
                     TextButton(onClick = { showExitConfirm = false }) {
-                        Text("취소")
+                        Text(stringResource(R.string.action_cancel))
                     }
                 },
             )

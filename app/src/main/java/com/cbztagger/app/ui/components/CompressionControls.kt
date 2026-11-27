@@ -29,9 +29,11 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import com.cbztagger.app.R
 import kotlin.math.roundToInt
 
 /**
@@ -64,12 +66,16 @@ fun ZipCompressionControl(
             verticalAlignment = Alignment.CenterVertically,
         ) {
             Text(
-                text = "ZIP 압축",
+                text = stringResource(R.string.zip_section_label),
                 style = MaterialTheme.typography.labelLarge,
                 fontWeight = FontWeight.SemiBold,
             )
             Text(
-                text = if (isCompressMode) "압축 단계: ${level.coerceIn(0, 9)}" else "기존 유지",
+                text = if (isCompressMode) {
+                    stringResource(R.string.zip_level_value, level.coerceIn(0, 9))
+                } else {
+                    stringResource(R.string.zip_mode_keep)
+                },
                 style = MaterialTheme.typography.labelLarge,
                 fontWeight = FontWeight.Bold,
                 color = MaterialTheme.colorScheme.primary,
@@ -88,7 +94,7 @@ fun ZipCompressionControl(
                 modifier = Modifier.height(40.dp),
             ) {
                 Text(
-                    text = "기존 유지",
+                    text = stringResource(R.string.zip_mode_keep),
                     maxLines = 1,
                     softWrap = false,
                     overflow = TextOverflow.Ellipsis,
@@ -101,7 +107,7 @@ fun ZipCompressionControl(
                 modifier = Modifier.height(40.dp),
             ) {
                 Text(
-                    text = "압축",
+                    text = stringResource(R.string.zip_mode_compress),
                     maxLines = 1,
                     softWrap = false,
                     overflow = TextOverflow.Ellipsis,
@@ -136,7 +142,7 @@ fun ZipCompressionControl(
                 Column(modifier = Modifier.fillMaxWidth()) {
                     Spacer(Modifier.height(6.dp))
                     Text(
-                        text = "기존 이미지의 압축 방식을 그대로 유지하고 ComicInfo.xml 태그만 빠르게 갱신합니다.",
+                        text = stringResource(R.string.zip_keep_desc),
                         style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                     )
@@ -162,7 +168,7 @@ fun ZipCompressionSlider(
     Column(modifier = modifier.fillMaxWidth()) {
         if (showHeader) {
             Text(
-                text = "압축 단계: $clamped",
+                text = stringResource(R.string.zip_level_value, clamped),
                 style = MaterialTheme.typography.bodyMedium,
                 fontWeight = FontWeight.Bold,
                 color = MaterialTheme.colorScheme.primary,
@@ -197,7 +203,7 @@ fun ZipCompressionSlider(
         }
         Spacer(Modifier.height(6.dp))
         Text(
-            text = "0은 무압축(Store)으로 로딩이 가장 빠르며, 1~9는 Deflate 압축으로 단계가 높을수록 압축률이 높아져 용량이 줄어드는 대신 저장 시간이 길어집니다. (기본 권장: 6)",
+            text = stringResource(R.string.zip_slider_desc),
             style = MaterialTheme.typography.bodySmall,
             color = MaterialTheme.colorScheme.onSurfaceVariant,
         )
