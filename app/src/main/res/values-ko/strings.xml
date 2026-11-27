@@ -173,11 +173,13 @@
     <string name="import_dest_label">CBZ 저장 폴더</string>
     <string name="import_dest_same">%1$s (외부 경로와 동일)</string>
     <string name="import_info_banner">무압축 보관(Store) · 원본 이미지 파일명 유지</string>
+    <string name="import_info_banner_sequential">무압축 보관(Store) · 이미지 000, 001, 002… 순번 정리</string>
     <string name="import_chip_all">전체 (%1$d)</string>
     <string name="import_chip_new">신규만 (%1$d)</string>
     <string name="import_item_summary">→ %1$s · 이미지 %2$d장 · %3$s</string>
     <string name="import_badge_imported">이미 불러옴</string>
     <string name="import_badge_xml">기존 XML 있음</string>
+    <string name="import_sequential_rename_checkbox">이미지 파일명 순서대로 정리 (000, 001, 002…)</string>
     <string name="import_delete_source_checkbox">불러오기 완료 후 원본 폴더 삭제</string>
     <string name="import_confirm_button">불러오기 (%1$d개)</string>
 
@@ -210,6 +212,8 @@
     <string name="settings_external_unset">설정되지 않음</string>
     <string name="settings_external_pick">경로 선택</string>
     <string name="settings_external_change">경로 변경</string>
+    <string name="settings_external_sequential_title">이미지 파일명 순서대로 일괄 정리 (000, 001, 002…)</string>
+    <string name="settings_external_sequential_desc">불러올 때 이미지 파일명을 이름 순서에 맞춰 000, 001, 002… 형식으로 일괄 변경합니다. 끄면 원본 파일명을 유지합니다.</string>
     <string name="settings_external_delete_title">외부파일을 성공적으로 불러온 후 원본파일을 삭제합니다</string>
     <string name="settings_external_delete_desc">불러오기에 성공한 원본 폴더만 삭제하며, 실패한 항목은 유지합니다.</string>
     <string name="settings_pages_title">페이지 목록 및 미리보기 설정</string>

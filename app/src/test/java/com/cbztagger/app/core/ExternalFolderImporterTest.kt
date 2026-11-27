@@ -37,6 +37,45 @@ class ExternalFolderImporterTest {
     }
 
     @Test
+    fun planImageEntriesSequentialRenameNumbersInNaturalOrderFromZero() {
+        val rawNames = listOf(
+            "page_10.jpg",
+            "page_2.jpg",
+            "cover.png",
+            "page_1.webp",
+            "ComicInfo.xml",
+            ".nomedia",
+            "readme.txt",
+        )
+
+        val planned = ExternalFolderImporter.planImageEntries(rawNames, sequentialRename = true) { it }
+        assertEquals(
+            listOf(
+                "000.png",
+                "001.webp",
+                "002.jpg",
+                "003.jpg",
+            ),
+            planned.map { it.targetEntryName },
+        )
+        assertEquals(
+            listOf("cover.png", "page_1.webp", "page_2.jpg", "page_10.jpg"),
+            planned.map { it.originalName },
+        )
+    }
+
+    @Test
+    fun planImageEntriesSequentialRenameExpandsPaddingOver1000Images() {
+        val rawNames = (1..1005).map { "img_$it.jpg" }.reversed()
+        val planned = ExternalFolderImporter.planImageEntries(rawNames, sequentialRename = true) { it }
+        assertEquals(1005, planned.size)
+        assertEquals("0000.jpg", planned.first().targetEntryName)
+        assertEquals("img_1.jpg", planned.first().originalName)
+        assertEquals("1004.jpg", planned.last().targetEntryName)
+        assertEquals("img_1005.jpg", planned.last().originalName)
+    }
+
+    @Test
     fun cleanFilenameAndUniqueCbzReservation() {
         assertEquals("My Comic Vol 1", ExternalFolderImporter.cleanFilename("  My Comic Vol 1. "))
         assertEquals("volume1", ExternalFolderImporter.cleanFilename("volume:1/*?"))

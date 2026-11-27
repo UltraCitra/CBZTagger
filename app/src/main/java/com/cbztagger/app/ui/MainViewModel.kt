@@ -566,6 +566,7 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
     fun runExternalImport(
         selectedCandidates: List<ExternalFolderCandidate>,
         deleteSourceAfterImport: Boolean,
+        sequentialRename: Boolean = false,
     ) {
         val importState = _uiState.value.externalImport ?: return
         if (selectedCandidates.isEmpty()) return
@@ -598,6 +599,7 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
                         destTreeUri = importState.destTreeUri,
                         existingNamesLower = existingNamesLower,
                         deleteSourceAfterImport = deleteSourceAfterImport,
+                        sequentialRename = sequentialRename,
                     ) { done, total ->
                         _uiState.update { s ->
                             s.copy(

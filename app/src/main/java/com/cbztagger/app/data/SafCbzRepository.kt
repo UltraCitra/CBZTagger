@@ -222,10 +222,11 @@ class SafCbzRepository(private val context: Context) {
         destTreeUri: Uri,
         existingNamesLower: MutableSet<String>,
         deleteSourceAfterImport: Boolean,
+        sequentialRename: Boolean = false,
         onProgress: (Int, Int) -> Unit = { _, _ -> },
     ): CbzDocumentItem = withContext(Dispatchers.IO) {
         val children = queryChildren(sourceTreeUri, candidate.folderDocId).filterNot { it.isDirectory }
-        val plannedImages = ExternalFolderImporter.planImageEntries(children) { it.name }
+        val plannedImages = ExternalFolderImporter.planImageEntries(children, sequentialRename) { it.name }
         if (plannedImages.isEmpty()) {
             throw IllegalStateException(str(R.string.err_no_images_in_folder, candidate.folderName))
         }

@@ -317,6 +317,7 @@ private fun ComicTagApp(viewModel: MainViewModel) {
             ExternalImportDialog(
                 importState = externalImport,
                 initialDeleteSource = state.settings.deleteExternalSourceAfterImport,
+                initialSequentialRename = state.settings.sequentialRenameOnExternalImport,
                 onChangeSourceFolder = {
                     openImportDialogAfterPick = true
                     externalFolderPicker.launch(null)
@@ -325,8 +326,8 @@ private fun ComicTagApp(viewModel: MainViewModel) {
                     importDestFolderPicker.launch(null)
                 },
                 onDismiss = { viewModel.dismissExternalImportDialog() },
-                onConfirm = { selected, deleteSource ->
-                    viewModel.runExternalImport(selected, deleteSource)
+                onConfirm = { selected, deleteSource, sequentialRename ->
+                    viewModel.runExternalImport(selected, deleteSource, sequentialRename)
                 },
             )
         }

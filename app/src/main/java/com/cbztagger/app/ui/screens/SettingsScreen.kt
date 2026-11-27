@@ -194,6 +194,37 @@ fun SettingsScreen(
                             .clickable {
                                 onUpdateSettings(
                                     settings.copy(
+                                        sequentialRenameOnExternalImport = !settings.sequentialRenameOnExternalImport,
+                                    ),
+                                )
+                            },
+                        verticalAlignment = Alignment.CenterVertically,
+                    ) {
+                        Checkbox(
+                            checked = settings.sequentialRenameOnExternalImport,
+                            onCheckedChange = { checked ->
+                                onUpdateSettings(settings.copy(sequentialRenameOnExternalImport = checked))
+                            },
+                        )
+                        Column(modifier = Modifier.weight(1f)) {
+                            Text(
+                                text = stringResource(R.string.settings_external_sequential_title),
+                                style = MaterialTheme.typography.bodySmall,
+                                fontWeight = FontWeight.Medium,
+                            )
+                            Text(
+                                text = stringResource(R.string.settings_external_sequential_desc),
+                                style = MaterialTheme.typography.labelSmall,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            )
+                        }
+                    }
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .clickable {
+                                onUpdateSettings(
+                                    settings.copy(
                                         deleteExternalSourceAfterImport = !settings.deleteExternalSourceAfterImport,
                                     ),
                                 )

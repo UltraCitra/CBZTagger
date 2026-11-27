@@ -51,7 +51,7 @@
 
 ### 5. Import External Image Folders to CBZ
 - Packs folders structured as `<configured path>/<folder name>/<image files>` into **`<folder name>.cbz`** in your current CBZ library folder (or any chosen destination folder).
-- Preserves original image filenames in natural sort order and packs entries as **uncompressed Store (`ZIP_STORED`)** for fast import before later metadata editing or recompression.
+- Preserves original image filenames in natural sort order by default, with an optional **Renumber images sequentially (`000`, `001`, `002`…)** checkbox available in both Settings and the import dialog. Entries are packed as **uncompressed Store (`ZIP_STORED`)** for fast import before later metadata editing or recompression.
 - Includes any existing `ComicInfo.xml` found in the source folder, with an optional setting (off by default) to **delete original folders after successful import**.
 
 ---

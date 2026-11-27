@@ -44,10 +44,15 @@ import com.cbztagger.app.ui.MainViewModel
 fun ExternalImportDialog(
     importState: ExternalImportUiState,
     initialDeleteSource: Boolean = false,
+    initialSequentialRename: Boolean = false,
     onChangeSourceFolder: () -> Unit,
     onChangeDestFolder: () -> Unit,
     onDismiss: () -> Unit,
-    onConfirm: (selected: List<ExternalFolderCandidate>, deleteSourceAfterImport: Boolean) -> Unit,
+    onConfirm: (
+        selected: List<ExternalFolderCandidate>,
+        deleteSourceAfterImport: Boolean,
+        sequentialRename: Boolean,
+    ) -> Unit,
 ) {
     val defaultSelected = remember(importState.candidates, importState.alreadyImportedNames) {
         importState.candidates
@@ -59,6 +64,7 @@ fun ExternalImportDialog(
         mutableStateOf(defaultSelected)
     }
     var deleteSourceAfterImport by remember(initialDeleteSource) { mutableStateOf(initialDeleteSource) }
+    var sequentialRename by remember(initialSequentialRename) { mutableStateOf(initialSequentialRename) }
 
     val selectedCandidates = importState.candidates.filter { it.folderName in selectedFolderNames }
     val canDeleteAnySource = selectedCandidates.any { !it.isRootFolderItself }
@@ -135,7 +141,9 @@ fun ExternalImportDialog(
                         }
 
                         Text(
-                            text = stringResource(R.string.import_info_banner),
+                            text = stringResource(
+                                if (sequentialRename) R.string.import_info_banner_sequential else R.string.import_info_banner,
+                            ),
                             style = MaterialTheme.typography.labelSmall,
                             color = MaterialTheme.colorScheme.primary,
                         )
@@ -172,7 +180,7 @@ fun ExternalImportDialog(
                 Column(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .heightIn(max = 280.dp)
+                        .heightIn(max = 260.dp)
                         .verticalScroll(rememberScrollState()),
                     verticalArrangement = Arrangement.spacedBy(4.dp),
                 ) {
@@ -240,8 +248,25 @@ fun ExternalImportDialog(
                     }
                 }
 
+                HorizontalDivider()
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .clickable { sequentialRename = !sequentialRename },
+                    verticalAlignment = Alignment.CenterVertically,
+                ) {
+                    Checkbox(
+                        checked = sequentialRename,
+                        onCheckedChange = { sequentialRename = it },
+                    )
+                    Spacer(Modifier.width(4.dp))
+                    Text(
+                        text = stringResource(R.string.import_sequential_rename_checkbox),
+                        style = MaterialTheme.typography.bodySmall,
+                    )
+                }
+
                 if (canDeleteAnySource) {
-                    HorizontalDivider()
                     Row(
                         modifier = Modifier
                             .fillMaxWidth()
@@ -263,7 +288,7 @@ fun ExternalImportDialog(
         },
         confirmButton = {
             Button(
-                onClick = { onConfirm(selectedCandidates, deleteSourceAfterImport && canDeleteAnySource) },
+                onClick = { onConfirm(selectedCandidates, deleteSourceAfterImport && canDeleteAnySource, sequentialRename) },
                 enabled = selectedCandidates.isNotEmpty(),
             ) {
                 Text(stringResource(R.string.import_confirm_button, selectedCandidates.size))

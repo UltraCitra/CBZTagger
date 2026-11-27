@@ -62,17 +62,29 @@ object ExternalFolderImporter {
     }
 
     /**
-     * Collects all supported image files while preserving original filenames,
-     * avoiding case-insensitive duplicates, and sorting in natural order.
+     * Collects all supported image files sorted in natural filename order.
+     * When [sequentialRename] is true, renames entries sequentially starting at `000`
+     * (`000.ext`, `001.ext`, `002.ext`, ...) while preserving original file extensions.
+     * Otherwise preserves original filenames and prevents case-insensitive duplicates.
      */
     fun <T> planImageEntries(
         items: List<T>,
+        sequentialRename: Boolean = false,
         nameSelector: (T) -> String,
     ): List<PlannedImageEntry<T>> {
         val filtered = items.mapNotNull { item ->
             val name = nameSelector(item).substringAfterLast('/')
             if (isSupportedImageFilename(name)) item to name else null
         }.sortedWith(compareBy(NaturalOrderComparator) { it.second })
+
+        if (sequentialRename) {
+            val padWidth = maxOf(3, (filtered.size - 1).coerceAtLeast(0).toString().length)
+            return filtered.mapIndexed { index, (item, originalName) ->
+                val extWithDot = extractExtWithDot(originalName)
+                val target = String.format(Locale.US, "%0${padWidth}d%s", index, extWithDot)
+                PlannedImageEntry(item, originalName, target)
+            }
+        }
 
         val usedLower = mutableSetOf(ComicInfoXml.FILENAME.lowercase(Locale.US))
         val planned = mutableListOf<PlannedImageEntry<T>>()
@@ -105,6 +117,11 @@ object ExternalFolderImporter {
 
         planned.sortWith(compareBy(NaturalOrderComparator) { it.targetEntryName })
         return planned
+    }
+
+    private fun extractExtWithDot(filename: String): String {
+        val dotIdx = filename.lastIndexOf('.')
+        return if (dotIdx >= 0) filename.substring(dotIdx) else ""
     }
 
     /**

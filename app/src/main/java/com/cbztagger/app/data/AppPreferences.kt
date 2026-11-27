@@ -15,6 +15,7 @@ data class AppSettings(
     val lastFolderUri: String? = null,
     val externalImportFolderUri: String? = null,
     val externalImportFolderName: String? = null,
+    val sequentialRenameOnExternalImport: Boolean = false,
     val deleteExternalSourceAfterImport: Boolean = false,
     val showPageListThumbnails: Boolean = false,
     val previewFollowMangaDirection: Boolean = true,
@@ -40,6 +41,7 @@ class AppPreferences(context: Context) {
             lastFolderUri = prefs.getString(KEY_LAST_FOLDER_URI, null),
             externalImportFolderUri = prefs.getString(KEY_EXTERNAL_IMPORT_URI, null),
             externalImportFolderName = prefs.getString(KEY_EXTERNAL_IMPORT_NAME, null),
+            sequentialRenameOnExternalImport = prefs.getBoolean(KEY_SEQUENTIAL_RENAME_EXTERNAL_IMPORT, false),
             deleteExternalSourceAfterImport = prefs.getBoolean(KEY_DELETE_EXTERNAL_SOURCE, false),
             showPageListThumbnails = prefs.getBoolean(KEY_SHOW_PAGE_LIST_THUMBNAILS, false),
             previewFollowMangaDirection = prefs.getBoolean(KEY_PREVIEW_FOLLOW_MANGA_DIR, true),
@@ -66,6 +68,7 @@ class AppPreferences(context: Context) {
             .putString(KEY_LAST_FOLDER_URI, settings.lastFolderUri)
             .putString(KEY_EXTERNAL_IMPORT_URI, settings.externalImportFolderUri)
             .putString(KEY_EXTERNAL_IMPORT_NAME, settings.externalImportFolderName)
+            .putBoolean(KEY_SEQUENTIAL_RENAME_EXTERNAL_IMPORT, settings.sequentialRenameOnExternalImport)
             .putBoolean(KEY_DELETE_EXTERNAL_SOURCE, settings.deleteExternalSourceAfterImport)
             .putBoolean(KEY_SHOW_PAGE_LIST_THUMBNAILS, settings.showPageListThumbnails)
             .putBoolean(KEY_PREVIEW_FOLLOW_MANGA_DIR, settings.previewFollowMangaDirection)
@@ -86,6 +89,7 @@ class AppPreferences(context: Context) {
         private const val KEY_LAST_FOLDER_URI = "last_folder_uri"
         private const val KEY_EXTERNAL_IMPORT_URI = "external_import_folder_uri"
         private const val KEY_EXTERNAL_IMPORT_NAME = "external_import_folder_name"
+        private const val KEY_SEQUENTIAL_RENAME_EXTERNAL_IMPORT = "sequential_rename_external_import"
         private const val KEY_DELETE_EXTERNAL_SOURCE = "delete_external_source_after_import"
         private const val KEY_SHOW_PAGE_LIST_THUMBNAILS = "show_page_list_thumbnails"
         private const val KEY_PREVIEW_FOLLOW_MANGA_DIR = "preview_follow_manga_direction"

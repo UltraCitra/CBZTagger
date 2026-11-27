@@ -173,11 +173,13 @@
     <string name="import_dest_label">CBZ Output Folder</string>
     <string name="import_dest_same">%1$s (Same as source)</string>
     <string name="import_info_banner">Store (Uncompressed) · Keep original image filenames</string>
+    <string name="import_info_banner_sequential">Store (Uncompressed) · Renumber images (000, 001, 002…)</string>
     <string name="import_chip_all">All (%1$d)</string>
     <string name="import_chip_new">New only (%1$d)</string>
     <string name="import_item_summary">→ %1$s · %2$d images · %3$s</string>
     <string name="import_badge_imported">Already imported</string>
     <string name="import_badge_xml">Has ComicInfo.xml</string>
+    <string name="import_sequential_rename_checkbox">Renumber images sequentially (000, 001, 002…)</string>
     <string name="import_delete_source_checkbox">Delete original folders after import</string>
     <string name="import_confirm_button">Import (%1$d)</string>
 
@@ -210,6 +212,8 @@
     <string name="settings_external_unset">Not set</string>
     <string name="settings_external_pick">Select Path</string>
     <string name="settings_external_change">Change Path</string>
+    <string name="settings_external_sequential_title">Renumber images sequentially (000, 001, 002…)</string>
+    <string name="settings_external_sequential_desc">Renames images in natural filename order to 000, 001, 002… when importing. When off, keeps original filenames.</string>
     <string name="settings_external_delete_title">Delete original folders after successful import</string>
     <string name="settings_external_delete_desc">Only deletes folders that imported successfully; failed items are kept.</string>
     <string name="settings_pages_title">Page List &amp; Preview</string>
