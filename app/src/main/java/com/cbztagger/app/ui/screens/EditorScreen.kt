@@ -2,6 +2,7 @@ package com.cbztagger.app.ui.screens
 
 import android.graphics.Bitmap
 import android.net.Uri
+import androidx.activity.compose.BackHandler
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.SizeTransform
@@ -143,9 +144,14 @@ fun EditorScreen(
 ) {
     val itemKey = editor.item.uri.toString()
     var tabIndex by rememberSaveable(itemKey) { mutableIntStateOf(0) }
+    var pagesBatchMode by rememberSaveable(itemKey) { mutableStateOf(false) }
     var showDeleteConfirm by remember { mutableStateOf(false) }
     var showRenameDialog by remember { mutableStateOf(false) }
     var previewPageIndex by rememberSaveable(itemKey) { mutableStateOf<Int?>(null) }
+
+    BackHandler(enabled = tabIndex == 2 && pagesBatchMode) {
+        pagesBatchMode = false
+    }
 
     Scaffold(
         topBar = {
@@ -166,7 +172,15 @@ fun EditorScreen(
                     }
                 },
                 navigationIcon = {
-                    IconButton(onClick = onBack) {
+                    IconButton(
+                        onClick = {
+                            if (tabIndex == 2 && pagesBatchMode) {
+                                pagesBatchMode = false
+                            } else {
+                                onBack()
+                            }
+                        },
+                    ) {
                         Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = stringResource(R.string.action_back))
                     }
                 },
@@ -239,6 +253,8 @@ fun EditorScreen(
                     pageNames = editor.pageNames,
                     displayPageNames = editor.displayedPageNames,
                     pendingSequentialPageRename = editor.pendingSequentialPageRename,
+                    batchMode = pagesBatchMode,
+                    onBatchModeChange = { pagesBatchMode = it },
                     pages = editor.draft.pages,
                     showThumbnails = settings.showPageListThumbnails,
                     onLoadThumbnail = onLoadPageThumbnail,
@@ -583,6 +599,8 @@ private fun PagesTab(
     pageNames: List<String>,
     displayPageNames: List<String>,
     pendingSequentialPageRename: Boolean,
+    batchMode: Boolean,
+    onBatchModeChange: (Boolean) -> Unit,
     pages: List<PageInfo>,
     showThumbnails: Boolean,
     onLoadThumbnail: suspend (Uri, String) -> Bitmap?,
@@ -603,8 +621,12 @@ private fun PagesTab(
     val normalizedPages = remember(pages, pageCount) { PageBatchHelper.ensurePagesSize(pages, pageCount) }
     val emptyTypeCount = remember(normalizedPages) { normalizedPages.count { it.type.isBlank() } }
 
-    var batchMode by rememberSaveable(itemUri.toString()) { mutableStateOf(false) }
     var selectedIndices by remember { mutableStateOf(emptySet<Int>()) }
+    LaunchedEffect(batchMode) {
+        if (!batchMode) {
+            selectedIndices = emptySet()
+        }
+    }
     var showRangeDialog by remember { mutableStateOf(false) }
     var showBatchTypeMenu by remember { mutableStateOf(false) }
     var showBatchBookmarkDialog by remember { mutableStateOf(false) }
@@ -634,7 +656,7 @@ private fun PagesTab(
                     ) {
                         FilledTonalButton(
                             onClick = {
-                                batchMode = true
+                                onBatchModeChange(true)
                                 selectedIndices = emptySet()
                             },
                             modifier = Modifier.fillMaxWidth(),
@@ -663,7 +685,7 @@ private fun PagesTab(
                             )
                             TextButton(
                                 onClick = {
-                                    batchMode = false
+                                    onBatchModeChange(false)
                                     selectedIndices = emptySet()
                                 },
                             ) {
@@ -714,8 +736,6 @@ private fun PagesTab(
                                 onClick = {
                                     if (pendingSequentialPageRename) {
                                         onSetSequentialPageRename(false)
-                                    } else if (!CbzArchive.needsSequentialPageRename(pageNames)) {
-                                        onNotifyPagesAlreadySequential()
                                     } else {
                                         showSequentialRenameDialog = true
                                     }
@@ -1076,6 +1096,7 @@ private fun PagesTab(
 
     if (showSequentialRenameDialog) {
         val plannedPairs = remember(pageNames) { CbzArchive.planSequentialPageRenames(pageNames) }
+        val needsRename = remember(plannedPairs) { plannedPairs.any { (old, new) -> old != new } }
         AlertDialog(
             onDismissRequest = { showSequentialRenameDialog = false },
             title = { Text(stringResource(R.string.pages_renumber_dialog_title)) },
@@ -1085,59 +1106,81 @@ private fun PagesTab(
                         text = stringResource(R.string.pages_renumber_dialog_desc, pageCount),
                         style = MaterialTheme.typography.bodySmall,
                     )
-                    Surface(
-                        shape = RoundedCornerShape(8.dp),
-                        color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.6f),
-                        modifier = Modifier.fillMaxWidth(),
-                    ) {
-                        Column(
-                            modifier = Modifier.padding(10.dp),
-                            verticalArrangement = Arrangement.spacedBy(2.dp),
+                    if (!needsRename) {
+                        Text(
+                            text = stringResource(R.string.pages_renumber_dialog_already),
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.primary,
+                            fontWeight = FontWeight.Medium,
+                        )
+                    } else {
+                        Surface(
+                            shape = RoundedCornerShape(8.dp),
+                            color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.6f),
+                            modifier = Modifier.fillMaxWidth(),
                         ) {
-                            val previewRows = if (plannedPairs.size <= 6) {
-                                plannedPairs
-                            } else {
-                                plannedPairs.take(5)
-                            }
-                            previewRows.forEach { (oldName, newName) ->
-                                Text(
-                                    text = "${oldName.substringAfterLast('/')} → $newName",
-                                    style = MaterialTheme.typography.labelSmall,
-                                    maxLines = 1,
-                                    overflow = TextOverflow.Ellipsis,
-                                )
-                            }
-                            if (plannedPairs.size > 6) {
-                                Text(
-                                    text = stringResource(R.string.pages_renumber_dialog_more, plannedPairs.size - 6),
-                                    style = MaterialTheme.typography.labelSmall,
-                                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                                )
-                                val (lastOld, lastNew) = plannedPairs.last()
-                                Text(
-                                    text = "${lastOld.substringAfterLast('/')} → $lastNew",
-                                    style = MaterialTheme.typography.labelSmall,
-                                    maxLines = 1,
-                                    overflow = TextOverflow.Ellipsis,
-                                )
+                            Column(
+                                modifier = Modifier.padding(10.dp),
+                                verticalArrangement = Arrangement.spacedBy(2.dp),
+                            ) {
+                                val previewRows = if (plannedPairs.size <= 6) {
+                                    plannedPairs
+                                } else {
+                                    plannedPairs.take(5)
+                                }
+                                previewRows.forEach { (oldName, newName) ->
+                                    Text(
+                                        text = "${oldName.substringAfterLast('/')} → $newName",
+                                        style = MaterialTheme.typography.labelSmall,
+                                        maxLines = 1,
+                                        overflow = TextOverflow.Ellipsis,
+                                    )
+                                }
+                                if (plannedPairs.size > 6) {
+                                    Text(
+                                        text = stringResource(R.string.pages_renumber_dialog_more, plannedPairs.size - 6),
+                                        style = MaterialTheme.typography.labelSmall,
+                                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                    )
+                                    val (lastOld, lastNew) = plannedPairs.last()
+                                    Text(
+                                        text = "${lastOld.substringAfterLast('/')} → $lastNew",
+                                        style = MaterialTheme.typography.labelSmall,
+                                        maxLines = 1,
+                                        overflow = TextOverflow.Ellipsis,
+                                    )
+                                }
                             }
                         }
+                        Text(
+                            text = stringResource(R.string.pages_renumber_dialog_question),
+                            style = MaterialTheme.typography.bodyMedium,
+                            fontWeight = FontWeight.SemiBold,
+                        )
                     }
                 }
             },
             confirmButton = {
-                Button(
-                    onClick = {
-                        showSequentialRenameDialog = false
-                        onSetSequentialPageRename(true)
-                    },
-                ) {
-                    Text(stringResource(R.string.action_apply))
+                if (needsRename) {
+                    Button(
+                        onClick = {
+                            showSequentialRenameDialog = false
+                            onSetSequentialPageRename(true)
+                        },
+                    ) {
+                        Text(stringResource(R.string.action_proceed))
+                    }
+                } else {
+                    Button(onClick = { showSequentialRenameDialog = false }) {
+                        Text(stringResource(R.string.action_close))
+                    }
                 }
             },
             dismissButton = {
-                TextButton(onClick = { showSequentialRenameDialog = false }) {
-                    Text(stringResource(R.string.action_cancel))
+                if (needsRename) {
+                    TextButton(onClick = { showSequentialRenameDialog = false }) {
+                        Text(stringResource(R.string.action_cancel))
+                    }
                 }
             },
         )

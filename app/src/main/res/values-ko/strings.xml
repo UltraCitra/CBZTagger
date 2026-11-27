@@ -18,6 +18,7 @@
     <string name="action_deselect_all">전체 해제</string>
     <string name="action_exit">종료</string>
     <string name="action_apply">일괄 적용</string>
+    <string name="action_proceed">진행</string>
     <string name="action_rename">이름 변경</string>
 
     <!-- MainActivity dialogs -->
@@ -135,7 +136,9 @@
     <string name="pages_chip_renumber_files">파일명 순번 정리</string>
     <string name="pages_chip_renumber_files_pending">✓ 파일명 순번 정리 (예정)</string>
     <string name="pages_renumber_dialog_title">페이지 파일명 순번 정리</string>
-    <string name="pages_renumber_dialog_desc">저장 시 전체 %1$d장의 이미지 파일명이 현재 순서대로 000, 001, 002… 형식으로 일괄 변경됩니다. (확장자 유지)</string>
+    <string name="pages_renumber_dialog_desc">CBZ 내부의 전체 %1$d장 이미지 파일명을 현재 페이지 순서대로 000, 001, 002… 형식으로 일괄 변경합니다. (확장자 유지 · 하단 \'태그 저장\' 시 반영)</string>
+    <string name="pages_renumber_dialog_question">계속 진행하시겠습니까?</string>
+    <string name="pages_renumber_dialog_already">현재 모든 이미지 파일명이 이미 000, 001, 002… 순서로 정리되어 있습니다.</string>
     <string name="pages_renumber_dialog_more">… 외 %1$d장</string>
     <string name="pages_btn_apply_type">선택한 %1$d페이지에 속성 일괄 적용</string>
     <string name="pages_type_clear">일반 (속성 초기화)</string>

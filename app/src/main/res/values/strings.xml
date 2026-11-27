@@ -18,6 +18,7 @@
     <string name="action_deselect_all">Deselect all</string>
     <string name="action_exit">Exit</string>
     <string name="action_apply">Apply</string>
+    <string name="action_proceed">Proceed</string>
     <string name="action_rename">Rename</string>
 
     <!-- MainActivity dialogs -->
@@ -135,7 +136,9 @@
     <string name="pages_chip_renumber_files">Renumber Files</string>
     <string name="pages_chip_renumber_files_pending">✓ Renumber Files (Pending)</string>
     <string name="pages_renumber_dialog_title">Renumber Page Filenames</string>
-    <string name="pages_renumber_dialog_desc">All %1$d page images will be renamed sequentially (000, 001, 002…) in the current order while keeping their extensions when you save.</string>
+    <string name="pages_renumber_dialog_desc">Renames all %1$d page images inside this CBZ sequentially (000, 001, 002…) in the current page order while keeping their extensions. Changes apply when you tap Save.</string>
+    <string name="pages_renumber_dialog_question">Do you want to proceed?</string>
+    <string name="pages_renumber_dialog_already">All page image filenames are already numbered sequentially (000, 001, 002…).</string>
     <string name="pages_renumber_dialog_more">… and %1$d more</string>
     <string name="pages_btn_apply_type">Apply attribute to %1$d selected</string>
     <string name="pages_type_clear">Normal (Clear)</string>
