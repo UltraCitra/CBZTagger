@@ -15,15 +15,18 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
+import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
@@ -64,6 +67,7 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
@@ -74,9 +78,12 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.layout.onSizeChanged
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import com.cbztagger.app.R
 import com.cbztagger.app.core.BatchTagPatch
@@ -86,11 +93,14 @@ import com.cbztagger.app.data.CbzDocumentItem
 import com.cbztagger.app.ui.MainUiState
 import com.cbztagger.app.ui.MainViewModel
 import com.cbztagger.app.ui.components.AuthorCreditInput
+import com.cbztagger.app.ui.components.FastScrollIndicator
+import com.cbztagger.app.ui.components.LazyListFastScrollbar
 import com.cbztagger.app.ui.components.MangaSelectorRow
 import com.cbztagger.app.ui.components.ZipCompressionControl
 import com.cbztagger.app.ui.components.ZipCompressionSlider
 import com.cbztagger.app.ui.components.localizeCompressionSummary
 import com.cbztagger.app.ui.components.localizedLabel
+import kotlin.math.roundToInt
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -208,28 +218,85 @@ fun LibraryScreen(
                 onImportExternal = onImportExternal,
             )
         } else {
-            LazyColumn(
+            val listState = rememberLazyListState()
+            var fastScrollIndicator by remember { mutableStateOf<FastScrollIndicator?>(null) }
+            var listContainerHeightPx by remember { mutableIntStateOf(0) }
+            val canScrollList by remember(listState, state.items.size) {
+                derivedStateOf {
+                    state.items.size > 1 && (listState.canScrollForward || listState.canScrollBackward)
+                }
+            }
+
+            Box(
                 modifier = Modifier
                     .fillMaxSize()
-                    .padding(padding),
-                contentPadding = PaddingValues(12.dp),
-                verticalArrangement = Arrangement.spacedBy(8.dp),
+                    .padding(padding)
+                    .onSizeChanged { listContainerHeightPx = it.height },
             ) {
-                items(state.items, key = { it.uri.toString() }) { item ->
-                    CbzItemCard(
-                        item = item,
-                        thumbnail = state.thumbnails[item.uri],
-                        selected = item.uri in state.selectedUris,
-                        selectionMode = state.isSelectionMode,
-                        onClick = {
-                            if (state.isSelectionMode) {
-                                onToggleSelect(item.uri)
-                            } else {
-                                onOpenEditor(item)
-                            }
-                        },
-                        onLongClick = { onToggleSelect(item.uri) },
+                Row(modifier = Modifier.fillMaxSize()) {
+                    LazyColumn(
+                        state = listState,
+                        modifier = Modifier
+                            .weight(1f)
+                            .fillMaxHeight(),
+                        contentPadding = PaddingValues(
+                            start = 12.dp,
+                            top = 12.dp,
+                            end = if (canScrollList) 4.dp else 12.dp,
+                            bottom = 12.dp,
+                        ),
+                        verticalArrangement = Arrangement.spacedBy(8.dp),
+                    ) {
+                        items(state.items, key = { it.uri.toString() }) { item ->
+                            CbzItemCard(
+                                item = item,
+                                thumbnail = state.thumbnails[item.uri],
+                                selected = item.uri in state.selectedUris,
+                                selectionMode = state.isSelectionMode,
+                                onClick = {
+                                    if (state.isSelectionMode) {
+                                        onToggleSelect(item.uri)
+                                    } else {
+                                        onOpenEditor(item)
+                                    }
+                                },
+                                onLongClick = { onToggleSelect(item.uri) },
+                            )
+                        }
+                    }
+                    LazyListFastScrollbar(
+                        listState = listState,
+                        totalItems = state.items.size,
+                        onIndicatorChange = { fastScrollIndicator = it },
+                        modifier = Modifier.fillMaxHeight(),
                     )
+                }
+
+                val indicator = fastScrollIndicator
+                if (indicator != null) {
+                    val density = LocalDensity.current
+                    val pillHalfHeightPx = with(density) { 16.dp.toPx() }
+                    val topMarginPx = with(density) { 8.dp.toPx() }
+                    val maxY = (listContainerHeightPx - pillHalfHeightPx * 2f - topMarginPx)
+                        .coerceAtLeast(topMarginPx)
+                    val offsetY = (indicator.centerYPx - pillHalfHeightPx).coerceIn(topMarginPx, maxY)
+                    Surface(
+                        shape = RoundedCornerShape(16.dp),
+                        color = MaterialTheme.colorScheme.inverseSurface,
+                        contentColor = MaterialTheme.colorScheme.inverseOnSurface,
+                        shadowElevation = 4.dp,
+                        modifier = Modifier
+                            .align(Alignment.TopEnd)
+                            .padding(end = 32.dp)
+                            .offset { IntOffset(0, offsetY.roundToInt()) },
+                    ) {
+                        Text(
+                            text = "${indicator.pageNumber} / ${indicator.totalPages}",
+                            style = MaterialTheme.typography.labelMedium,
+                            fontWeight = FontWeight.SemiBold,
+                            modifier = Modifier.padding(horizontal = 10.dp, vertical = 6.dp),
+                        )
+                    }
                 }
             }
         }
