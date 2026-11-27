@@ -284,6 +284,8 @@ private fun ComicTagApp(viewModel: MainViewModel) {
                             onSave = { viewModel.saveEditorComicInfo() },
                             onDeleteTags = { viewModel.deleteEditorComicInfo() },
                             onRenameFile = { viewModel.renameEditorFile(it) },
+                            onSetSequentialPageRename = { viewModel.setEditorSequentialPageRename(it) },
+                            onNotifyPagesAlreadySequential = { viewModel.notifyPagesAlreadySequential() },
                             onLoadPagePreview = { uri, entry -> viewModel.loadPagePreview(uri, entry) },
                             onLoadPageThumbnail = { uri, entry -> viewModel.loadPageListThumbnail(uri, entry) },
                         )

@@ -132,6 +132,11 @@
     <string name="pages_batch_header">Batch Edit (%1$d/%2$d selected)</string>
     <string name="pages_chip_range">Select Range</string>
     <string name="pages_chip_fill_story">Set Empty to Story (%1$d)</string>
+    <string name="pages_chip_renumber_files">Renumber Files</string>
+    <string name="pages_chip_renumber_files_pending">✓ Renumber Files (Pending)</string>
+    <string name="pages_renumber_dialog_title">Renumber Page Filenames</string>
+    <string name="pages_renumber_dialog_desc">All %1$d page images will be renamed sequentially (000, 001, 002…) in the current order while keeping their extensions when you save.</string>
+    <string name="pages_renumber_dialog_more">… and %1$d more</string>
     <string name="pages_btn_apply_type">Apply attribute to %1$d selected</string>
     <string name="pages_type_clear">Normal (Clear)</string>
     <string name="pages_type_none">Normal (None)</string>
@@ -282,6 +287,9 @@
     <string name="progress_renaming_file">Renaming file…</string>
     <string name="msg_rename_complete">Renamed: %1$s</string>
     <string name="msg_rename_failed">Rename failed (permission denied or duplicate filename)</string>
+    <string name="msg_pages_rename_queued">Page filenames will be renumbered (000, 001, 002…) when saved.</string>
+    <string name="msg_pages_rename_cancelled">Pending page filename renumbering cancelled.</string>
+    <string name="msg_pages_already_sequential">Page filenames are already numbered sequentially (000, 001, 002…).</string>
     <string name="external_folder_fallback">External Folder</string>
     <string name="selected_folder_fallback">Selected Folder</string>
     <string name="msg_external_path_set">External import path set: %1$s</string>

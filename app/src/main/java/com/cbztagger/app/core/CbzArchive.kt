@@ -4,6 +4,7 @@ import java.io.BufferedOutputStream
 import java.io.ByteArrayOutputStream
 import java.io.File
 import java.io.FileOutputStream
+import java.util.Locale
 import java.util.zip.CRC32
 import java.util.zip.Deflater
 import java.util.zip.ZipEntry
@@ -107,10 +108,26 @@ object CbzArchive {
         }
     }
 
+    fun planSequentialPageRenames(pageNames: List<String>): List<Pair<String, String>> {
+        if (pageNames.isEmpty()) return emptyList()
+        val padWidth = maxOf(3, (pageNames.size - 1).coerceAtLeast(0).toString().length)
+        return pageNames.mapIndexed { index, oldName ->
+            val base = oldName.substringAfterLast('/')
+            val dotIdx = base.lastIndexOf('.')
+            val extWithDot = if (dotIdx >= 0) base.substring(dotIdx) else ""
+            val newName = String.format(Locale.US, "%0${padWidth}d%s", index, extWithDot)
+            oldName to newName
+        }
+    }
+
+    fun needsSequentialPageRename(pageNames: List<String>): Boolean =
+        planSequentialPageRenames(pageNames).any { (old, new) -> old != new }
+
     fun writeComicInfo(
         file: File,
         comicInfo: ComicInfo,
         compressionLevel: Int = -1,
+        entryRenames: Map<String, String> = emptyMap(),
         onProgress: (processed: Int, total: Int) -> Unit = { _, _ -> },
     ): CbzWriteResult {
         val level = compressionLevel.coerceIn(-1, 9)
@@ -142,6 +159,7 @@ object CbzArchive {
             compressionLevel = level,
             replaceEntries = mapOf(ComicInfoXml.FILENAME to xmlBytes),
             removeEntryNames = emptySet(),
+            entryRenames = entryRenames,
             onProgress = onProgress,
         )
 
@@ -205,6 +223,7 @@ object CbzArchive {
         compressionLevel: Int,
         replaceEntries: Map<String, ByteArray>,
         removeEntryNames: Set<String>,
+        entryRenames: Map<String, String> = emptyMap(),
         onProgress: (processed: Int, total: Int) -> Unit,
     ) {
         val parentDir = sourceFile.parentFile ?: File(".")
@@ -213,8 +232,30 @@ object CbzArchive {
 
         try {
             ZipFile(sourceFile).use { zin ->
-                val allEntries = zin.entries().toList()
-                val totalSteps = allEntries.size + replaceEntries.size
+                val rawEntries = zin.entries().toList()
+                val orderedEntries = if (entryRenames.isEmpty()) {
+                    rawEntries
+                } else {
+                    val renamedFiles = mutableListOf<Pair<ZipEntry, String>>()
+                    val otherFiles = mutableListOf<ZipEntry>()
+                    val dirEntries = mutableListOf<ZipEntry>()
+                    for (entry in rawEntries) {
+                        if (!entry.isDirectory && entry.name.lowercase() in skipLower) continue
+                        when {
+                            entry.isDirectory -> dirEntries += entry
+                            entry.name in entryRenames -> renamedFiles += entry to entryRenames.getValue(entry.name)
+                            else -> otherFiles += entry
+                        }
+                    }
+                    renamedFiles.sortWith(compareBy(NaturalOrderComparator) { it.second })
+                    val keptOtherNames = otherFiles.map { it.name }
+                    val keptDirs = dirEntries.filter { dir ->
+                        keptOtherNames.any { it.startsWith(dir.name) }
+                    }
+                    renamedFiles.map { it.first } + keptDirs + otherFiles
+                }
+
+                val totalSteps = orderedEntries.size + replaceEntries.size
                 var processed = 0
 
                 ZipOutputStream(BufferedOutputStream(FileOutputStream(tempFile), 64 * 1024)).use { zout ->
@@ -225,7 +266,7 @@ object CbzArchive {
                     }
 
                     val buffer = ByteArray(64 * 1024)
-                    for (entry in allEntries) {
+                    for (entry in orderedEntries) {
                         processed++
                         onProgress(processed, totalSteps)
 
@@ -246,6 +287,7 @@ object CbzArchive {
                             continue
                         }
 
+                        val targetEntryName = entryRenames[entry.name] ?: entry.name
                         val targetMethod = when {
                             compressionLevel == 0 -> ZipEntry.STORED
                             compressionLevel in 1..9 -> ZipEntry.DEFLATED
@@ -256,7 +298,7 @@ object CbzArchive {
                             // Need exact uncompressed size and CRC32 for STORED entries
                             val data = readStreamBytes(zin.getInputStream(entry), buffer)
                             val crc32 = CRC32().apply { update(data) }.value
-                            val outEntry = ZipEntry(entry.name).apply {
+                            val outEntry = ZipEntry(targetEntryName).apply {
                                 time = entry.time
                                 comment = entry.comment
                                 method = ZipEntry.STORED
@@ -268,7 +310,7 @@ object CbzArchive {
                             zout.write(data)
                             zout.closeEntry()
                         } else {
-                            val outEntry = ZipEntry(entry.name).apply {
+                            val outEntry = ZipEntry(targetEntryName).apply {
                                 time = entry.time
                                 comment = entry.comment
                                 method = ZipEntry.DEFLATED

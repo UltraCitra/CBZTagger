@@ -105,4 +105,62 @@ class CbzArchiveTest {
         assertEquals("Preserved", after.comicInfo.series)
         assertEquals("7", after.comicInfo.number)
     }
+
+    @Test
+    fun writeComicInfoWithSequentialPageRenamesFlattensAndRenumbersPreservingBytes() {
+        val file = tempFolder.newFile("rename_pages.cbz")
+        val p0 = "cover-bytes".toByteArray()
+        val p1 = "page1-bytes".toByteArray()
+        val p2 = "page10-bytes".toByteArray()
+        ZipOutputStream(FileOutputStream(file)).use { zos ->
+            zos.putNextEntry(ZipEntry("vol1/").apply {
+                method = ZipEntry.STORED
+                size = 0L
+                compressedSize = 0L
+                crc = 0L
+            })
+            zos.closeEntry()
+            listOf(
+                "vol1/page_10.png" to p2,
+                "vol1/cover.jpg" to p0,
+                "vol1/page_2.webp" to p1,
+            ).forEach { (name, bytes) ->
+                val e = ZipEntry(name).apply {
+                    method = ZipEntry.STORED
+                    size = bytes.size.toLong()
+                    compressedSize = bytes.size.toLong()
+                    crc = CRC32().apply { update(bytes) }.value
+                }
+                zos.putNextEntry(e)
+                zos.write(bytes)
+                zos.closeEntry()
+            }
+        }
+
+        val initial = CbzArchive.inspect(file)
+        assertEquals(listOf("vol1/cover.jpg", "vol1/page_2.webp", "vol1/page_10.png"), initial.pageNames)
+        assertTrue(CbzArchive.needsSequentialPageRename(initial.pageNames))
+
+        val renameMap = CbzArchive.planSequentialPageRenames(initial.pageNames).toMap()
+        CbzArchive.writeComicInfo(
+            file = file,
+            comicInfo = ComicInfo(series = "Renamed", number = "1"),
+            compressionLevel = -1,
+            entryRenames = renameMap,
+        )
+
+        val after = CbzArchive.inspect(file)
+        assertEquals(listOf("000.jpg", "001.webp", "002.png"), after.pageNames)
+        assertFalse(CbzArchive.needsSequentialPageRename(after.pageNames))
+        assertEquals("Renamed", after.comicInfo.series)
+
+        ZipFile(file).use { zf ->
+            val names = zf.entries().toList().map { it.name }
+            assertEquals(listOf("000.jpg", "001.webp", "002.png", ComicInfoXml.FILENAME), names)
+            assertArrayEquals(p0, zf.getInputStream(zf.getEntry("000.jpg")).readBytes())
+            assertArrayEquals(p1, zf.getInputStream(zf.getEntry("001.webp")).readBytes())
+            assertArrayEquals(p2, zf.getInputStream(zf.getEntry("002.png")).readBytes())
+            assertEquals(ZipEntry.STORED, zf.getEntry("000.jpg").method)
+        }
+    }
 }

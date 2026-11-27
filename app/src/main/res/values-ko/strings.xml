@@ -132,6 +132,11 @@
     <string name="pages_batch_header">일괄 속성 편집 (%1$d/%2$d 선택)</string>
     <string name="pages_chip_range">범위 선택 (시작~끝)</string>
     <string name="pages_chip_fill_story">빈 페이지 일괄 Story (%1$d)</string>
+    <string name="pages_chip_renumber_files">파일명 순번 정리</string>
+    <string name="pages_chip_renumber_files_pending">✓ 파일명 순번 정리 (예정)</string>
+    <string name="pages_renumber_dialog_title">페이지 파일명 순번 정리</string>
+    <string name="pages_renumber_dialog_desc">저장 시 전체 %1$d장의 이미지 파일명이 현재 순서대로 000, 001, 002… 형식으로 일괄 변경됩니다. (확장자 유지)</string>
+    <string name="pages_renumber_dialog_more">… 외 %1$d장</string>
     <string name="pages_btn_apply_type">선택한 %1$d페이지에 속성 일괄 적용</string>
     <string name="pages_type_clear">일반 (속성 초기화)</string>
     <string name="pages_type_none">일반 (지정 안 함)</string>
@@ -282,6 +287,9 @@
     <string name="progress_renaming_file">파일 이름 변경 중…</string>
     <string name="msg_rename_complete">이름 변경 완료: %1$s</string>
     <string name="msg_rename_failed">파일 이름 변경 실패 (권한 또는 동일 파일명 존재)</string>
+    <string name="msg_pages_rename_queued">저장 시 이미지 파일명이 000, 001, 002… 순서로 변경됩니다.</string>
+    <string name="msg_pages_rename_cancelled">페이지 파일명 순번 정리가 취소되었습니다.</string>
+    <string name="msg_pages_already_sequential">이미 000, 001, 002… 순서로 정리되어 있습니다.</string>
     <string name="external_folder_fallback">외부 폴더</string>
     <string name="selected_folder_fallback">선택된 폴더</string>
     <string name="msg_external_path_set">외부 불러오기 경로 설정: %1$s</string>

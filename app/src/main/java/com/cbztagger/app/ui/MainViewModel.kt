@@ -8,6 +8,7 @@ import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import com.cbztagger.app.R
 import com.cbztagger.app.core.BatchTagPatch
+import com.cbztagger.app.core.CbzArchive
 import com.cbztagger.app.core.ComicInfo
 import com.cbztagger.app.core.ExternalFolderImporter
 import com.cbztagger.app.core.FileRenamer
@@ -46,9 +47,17 @@ data class EditorState(
     val pageNames: List<String> = emptyList(),
     val compressionLevel: Int = -1,
     val isDirty: Boolean = false,
+    val pendingSequentialPageRename: Boolean = false,
 ) {
     val hasUnsavedChanges: Boolean
-        get() = isDirty && draft != item.comicInfo
+        get() = pendingSequentialPageRename || (isDirty && draft != item.comicInfo)
+
+    val displayedPageNames: List<String>
+        get() = if (pendingSequentialPageRename) {
+            CbzArchive.planSequentialPageRenames(pageNames).map { it.second }
+        } else {
+            pageNames
+        }
 }
 
 data class ExternalImportUiState(
@@ -310,8 +319,29 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
         }
     }
 
+    fun setEditorSequentialPageRename(enabled: Boolean) {
+        val ed = _uiState.value.editor ?: return
+        _uiState.update { state ->
+            state.copy(
+                editor = ed.copy(pendingSequentialPageRename = enabled),
+                statusMessage = str(
+                    if (enabled) R.string.msg_pages_rename_queued else R.string.msg_pages_rename_cancelled,
+                ),
+            )
+        }
+    }
+
+    fun notifyPagesAlreadySequential() {
+        _uiState.update { it.copy(statusMessage = str(R.string.msg_pages_already_sequential)) }
+    }
+
     fun saveEditorComicInfo(navigateBackAfterSave: Boolean = false) {
         val ed = _uiState.value.editor ?: return
+        val renameMap = if (ed.pendingSequentialPageRename) {
+            CbzArchive.planSequentialPageRenames(ed.pageNames).toMap()
+        } else {
+            emptyMap()
+        }
         viewModelScope.launch {
             _uiState.update {
                 it.copy(progress = ProgressState(str(R.string.progress_saving_compressing), detail = ed.item.displayName))
@@ -321,6 +351,7 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
                     uri = ed.item.uri,
                     comicInfo = ed.draft,
                     compressionLevel = _uiState.value.settings.zipCompressionLevel,
+                    entryRenames = renameMap,
                 ) { done, total ->
                     _uiState.update { s ->
                         s.copy(
@@ -333,17 +364,30 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
                         )
                     }
                 }
-                val refreshed = repo.inspectUri(ed.item.uri, ed.item.displayName)
-                res to refreshed
-            }.onSuccess { (res, refreshed) ->
-                if (navigateBackAfterSave) {
+                if (renameMap.isNotEmpty() || navigateBackAfterSave) {
                     repo.closeEditorSession()
                 }
+                val refreshed = repo.inspectUri(ed.item.uri, ed.item.displayName)
+                val updatedPageNames = if (renameMap.isNotEmpty() && !navigateBackAfterSave) {
+                    runCatching { repo.loadPageNames(ed.item.uri) }.getOrElse { ed.displayedPageNames }
+                } else if (renameMap.isNotEmpty()) {
+                    ed.displayedPageNames
+                } else {
+                    ed.pageNames
+                }
+                Triple(res, refreshed, updatedPageNames)
+            }.onSuccess { (res, refreshed, updatedPageNames) ->
                 _uiState.update { state ->
                     state.copy(
                         screen = if (navigateBackAfterSave) ActiveScreen.LIBRARY else state.screen,
                         items = state.items.map { if (it.uri == refreshed.uri) refreshed else it },
-                        editor = ed.copy(item = refreshed, draft = refreshed.comicInfo, isDirty = false),
+                        editor = ed.copy(
+                            item = refreshed,
+                            draft = refreshed.comicInfo,
+                            pageNames = updatedPageNames,
+                            pendingSequentialPageRename = false,
+                            isDirty = false,
+                        ),
                         progress = null,
                         statusMessage = str(R.string.msg_save_complete, formatBytes(res.beforeBytes), formatBytes(res.afterBytes)),
                     )

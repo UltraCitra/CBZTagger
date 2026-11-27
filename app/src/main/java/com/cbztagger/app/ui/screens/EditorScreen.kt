@@ -48,7 +48,6 @@ import androidx.compose.material.icons.automirrored.filled.MenuBook
 import androidx.compose.material.icons.filled.ArrowDropDown
 import androidx.compose.material.icons.filled.AutoFixHigh
 import androidx.compose.material.icons.filled.Bookmark
-import androidx.compose.material.icons.filled.BookmarkAdd
 import androidx.compose.material.icons.filled.Checklist
 import androidx.compose.material.icons.filled.ChevronLeft
 import androidx.compose.material.icons.filled.ChevronRight
@@ -104,6 +103,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
 import com.cbztagger.app.R
+import com.cbztagger.app.core.CbzArchive
 import com.cbztagger.app.core.ComicInfo
 import com.cbztagger.app.core.FileRenamer
 import com.cbztagger.app.core.PageBatchHelper
@@ -136,6 +136,8 @@ fun EditorScreen(
     onSave: () -> Unit,
     onDeleteTags: () -> Unit,
     onRenameFile: (String) -> Unit,
+    onSetSequentialPageRename: (Boolean) -> Unit,
+    onNotifyPagesAlreadySequential: () -> Unit,
     onLoadPagePreview: suspend (Uri, String) -> Bitmap?,
     onLoadPageThumbnail: suspend (Uri, String) -> Bitmap?,
 ) {
@@ -235,6 +237,8 @@ fun EditorScreen(
                 2 -> PagesTab(
                     itemUri = editor.item.uri,
                     pageNames = editor.pageNames,
+                    displayPageNames = editor.displayedPageNames,
+                    pendingSequentialPageRename = editor.pendingSequentialPageRename,
                     pages = editor.draft.pages,
                     showThumbnails = settings.showPageListThumbnails,
                     onLoadThumbnail = onLoadPageThumbnail,
@@ -250,6 +254,8 @@ fun EditorScreen(
                     onReplaceAllPages = { updatedPages ->
                         onDraftChange { info -> info.copy(pages = updatedPages) }
                     },
+                    onSetSequentialPageRename = onSetSequentialPageRename,
+                    onNotifyPagesAlreadySequential = onNotifyPagesAlreadySequential,
                     onPreviewClick = { index -> previewPageIndex = index },
                 )
             }
@@ -321,6 +327,7 @@ fun EditorScreen(
         PageImagePreviewDialog(
             uri = editor.item.uri,
             pageNames = editor.pageNames,
+            displayPageNames = editor.displayedPageNames,
             pages = editor.draft.pages,
             initialIndex = indexToPreview,
             isRtl = isRtlPreview,
@@ -574,11 +581,15 @@ private fun CreditsAndDetailsTab(
 private fun PagesTab(
     itemUri: Uri,
     pageNames: List<String>,
+    displayPageNames: List<String>,
+    pendingSequentialPageRename: Boolean,
     pages: List<PageInfo>,
     showThumbnails: Boolean,
     onLoadThumbnail: suspend (Uri, String) -> Bitmap?,
     onUpdatePage: (Int, PageInfo) -> Unit,
     onReplaceAllPages: (List<PageInfo>) -> Unit,
+    onSetSequentialPageRename: (Boolean) -> Unit,
+    onNotifyPagesAlreadySequential: () -> Unit,
     onPreviewClick: (Int) -> Unit,
 ) {
     if (pageNames.isEmpty()) {
@@ -597,10 +608,11 @@ private fun PagesTab(
     var showRangeDialog by remember { mutableStateOf(false) }
     var showBatchTypeMenu by remember { mutableStateOf(false) }
     var showBatchBookmarkDialog by remember { mutableStateOf(false) }
+    var showSequentialRenameDialog by remember { mutableStateOf(false) }
     var bookmarkDialogPageIndex by remember { mutableStateOf<Int?>(null) }
 
     Column(modifier = Modifier.fillMaxSize()) {
-        // Sticky top action bar for batch page attribute editing & bulk bookmarks
+        // Sticky top action bar for batch page attribute editing, bulk bookmarks & sequential filename renumbering
         Surface(tonalElevation = 2.dp, modifier = Modifier.fillMaxWidth()) {
             AnimatedContent(
                 targetState = batchMode,
@@ -618,7 +630,6 @@ private fun PagesTab(
                         modifier = Modifier
                             .fillMaxWidth()
                             .padding(horizontal = 12.dp, vertical = 8.dp),
-                        horizontalArrangement = Arrangement.spacedBy(8.dp),
                         verticalAlignment = Alignment.CenterVertically,
                     ) {
                         FilledTonalButton(
@@ -626,19 +637,11 @@ private fun PagesTab(
                                 batchMode = true
                                 selectedIndices = emptySet()
                             },
-                            modifier = Modifier.weight(1f),
+                            modifier = Modifier.fillMaxWidth(),
                         ) {
                             Icon(Icons.Default.Checklist, contentDescription = null, modifier = Modifier.size(18.dp))
                             Spacer(Modifier.width(6.dp))
                             Text(stringResource(R.string.pages_btn_batch_edit), maxLines = 1, overflow = TextOverflow.Ellipsis)
-                        }
-                        OutlinedButton(
-                            onClick = { showBatchBookmarkDialog = true },
-                            modifier = Modifier.weight(1f),
-                        ) {
-                            Icon(Icons.Default.BookmarkAdd, contentDescription = null, modifier = Modifier.size(18.dp))
-                            Spacer(Modifier.width(6.dp))
-                            Text(stringResource(R.string.pages_btn_bookmarks), maxLines = 1, overflow = TextOverflow.Ellipsis)
                         }
                     }
                 } else {
@@ -706,6 +709,28 @@ private fun PagesTab(
                             AssistChip(
                                 onClick = { showBatchBookmarkDialog = true },
                                 label = { Text(stringResource(R.string.pages_btn_bookmarks)) },
+                            )
+                            AssistChip(
+                                onClick = {
+                                    if (pendingSequentialPageRename) {
+                                        onSetSequentialPageRename(false)
+                                    } else if (!CbzArchive.needsSequentialPageRename(pageNames)) {
+                                        onNotifyPagesAlreadySequential()
+                                    } else {
+                                        showSequentialRenameDialog = true
+                                    }
+                                },
+                                label = {
+                                    Text(
+                                        stringResource(
+                                            if (pendingSequentialPageRename) {
+                                                R.string.pages_chip_renumber_files_pending
+                                            } else {
+                                                R.string.pages_chip_renumber_files
+                                            },
+                                        ),
+                                    )
+                                },
                             )
                         }
 
@@ -877,7 +902,7 @@ private fun PagesTab(
                                 fontWeight = FontWeight.SemiBold,
                             )
                             Text(
-                                text = "· ${entryName.substringAfterLast('/')}",
+                                text = "· ${(displayPageNames.getOrNull(idx) ?: entryName).substringAfterLast('/')}",
                                 style = MaterialTheme.typography.bodyMedium,
                                 maxLines = 1,
                                 overflow = TextOverflow.Ellipsis,
@@ -1049,6 +1074,75 @@ private fun PagesTab(
         )
     }
 
+    if (showSequentialRenameDialog) {
+        val plannedPairs = remember(pageNames) { CbzArchive.planSequentialPageRenames(pageNames) }
+        AlertDialog(
+            onDismissRequest = { showSequentialRenameDialog = false },
+            title = { Text(stringResource(R.string.pages_renumber_dialog_title)) },
+            text = {
+                Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                    Text(
+                        text = stringResource(R.string.pages_renumber_dialog_desc, pageCount),
+                        style = MaterialTheme.typography.bodySmall,
+                    )
+                    Surface(
+                        shape = RoundedCornerShape(8.dp),
+                        color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.6f),
+                        modifier = Modifier.fillMaxWidth(),
+                    ) {
+                        Column(
+                            modifier = Modifier.padding(10.dp),
+                            verticalArrangement = Arrangement.spacedBy(2.dp),
+                        ) {
+                            val previewRows = if (plannedPairs.size <= 6) {
+                                plannedPairs
+                            } else {
+                                plannedPairs.take(5)
+                            }
+                            previewRows.forEach { (oldName, newName) ->
+                                Text(
+                                    text = "${oldName.substringAfterLast('/')} → $newName",
+                                    style = MaterialTheme.typography.labelSmall,
+                                    maxLines = 1,
+                                    overflow = TextOverflow.Ellipsis,
+                                )
+                            }
+                            if (plannedPairs.size > 6) {
+                                Text(
+                                    text = stringResource(R.string.pages_renumber_dialog_more, plannedPairs.size - 6),
+                                    style = MaterialTheme.typography.labelSmall,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                )
+                                val (lastOld, lastNew) = plannedPairs.last()
+                                Text(
+                                    text = "${lastOld.substringAfterLast('/')} → $lastNew",
+                                    style = MaterialTheme.typography.labelSmall,
+                                    maxLines = 1,
+                                    overflow = TextOverflow.Ellipsis,
+                                )
+                            }
+                        }
+                    }
+                }
+            },
+            confirmButton = {
+                Button(
+                    onClick = {
+                        showSequentialRenameDialog = false
+                        onSetSequentialPageRename(true)
+                    },
+                ) {
+                    Text(stringResource(R.string.action_apply))
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { showSequentialRenameDialog = false }) {
+                    Text(stringResource(R.string.action_cancel))
+                }
+            },
+        )
+    }
+
     val targetIdx = bookmarkDialogPageIndex
     if (targetIdx != null) {
         val currentPageInfo = normalizedPages[targetIdx]
@@ -1169,6 +1263,7 @@ private fun PageListThumbnail(
 private fun PageImagePreviewDialog(
     uri: Uri,
     pageNames: List<String>,
+    displayPageNames: List<String>,
     pages: List<PageInfo>,
     initialIndex: Int,
     isRtl: Boolean,
@@ -1179,6 +1274,7 @@ private fun PageImagePreviewDialog(
         mutableIntStateOf(initialIndex.coerceIn(0, (pageNames.size - 1).coerceAtLeast(0)))
     }
     val entryName = pageNames.getOrNull(currentIndex) ?: return
+    val displayEntryName = displayPageNames.getOrNull(currentIndex) ?: entryName
     val currentPageInfo = pages.firstOrNull { it.image == currentIndex }
     val doubleShortLabel = stringResource(R.string.pages_double_short)
     val bookmarkText = currentPageInfo?.bookmark?.takeIf { it.isNotBlank() }?.let {
@@ -1233,7 +1329,7 @@ private fun PageImagePreviewDialog(
                             horizontalArrangement = Arrangement.spacedBy(6.dp),
                         ) {
                             Text(
-                                text = "#${currentIndex + 1} / ${pageNames.size} · ${entryName.substringAfterLast('/')}",
+                                text = "#${currentIndex + 1} / ${pageNames.size} · ${displayEntryName.substringAfterLast('/')}",
                                 style = MaterialTheme.typography.titleSmall,
                                 fontWeight = FontWeight.Bold,
                                 maxLines = 1,

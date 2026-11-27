@@ -332,10 +332,11 @@ class SafCbzRepository(private val context: Context) {
         uri: Uri,
         comicInfo: ComicInfo,
         compressionLevel: Int,
+        entryRenames: Map<String, String> = emptyMap(),
         onProgress: (Int, Int) -> Unit = { _, _ -> },
     ): CbzWriteResult = withContext(Dispatchers.IO) {
         withTempCopy(uri) { tempFile ->
-            val result = CbzArchive.writeComicInfo(tempFile, comicInfo, compressionLevel, onProgress)
+            val result = CbzArchive.writeComicInfo(tempFile, comicInfo, compressionLevel, entryRenames, onProgress)
             writeBackToUri(tempFile, uri)
             result
         }
